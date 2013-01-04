@@ -298,3 +298,6 @@
 [submodule "site-lisp/pandoc-mode"]
 	path = site-lisp/pandoc-mode
 	url = git://github.com/joostkremers/pandoc-mode.git
+[submodule "site-lisp/hsenv"]
+	path = site-lisp/hsenv
+	url = git@github.com:Paczesiowa/hsenv.git
