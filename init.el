@@ -2759,6 +2759,17 @@ FORM => (eval FORM)."
           end tell" account account start (if cleared "true" "false")
             end end  duration commodity))))))
 
+;;;_ , midnight
+(use-package midnight
+  :config
+  (setq
+   clean-buffer-list-kill-never-regexps
+   '("^ \\*Minibuf-.*\\*$" "^\\*Summary" "^\\*Article" "^#")
+   clean-buffer-list-kill-never-buffer-names
+   '("*scratch*" "*Messages*" "*server*" "*Group*"
+     "*Org Agenda*" "todo.txt" "&bitlbee")
+   clean-buffer-list-kill-regexps '(".*")))
+
 ;;;_ , mudel
 
 (use-package mudel
