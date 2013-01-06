@@ -18,7 +18,6 @@
  '(align-c++-modes (quote (csharp-mode c++-mode c-mode java-mode groovy-mode)))
  '(align-to-tab-stop nil)
  '(ansi-color-names-vector ["black" "red" "green" "brown" "blue" "magenta" "blue" "white"])
- '(auto-compression-mode t nil (jka-compr))
  '(auto-save-interval 1024)
  '(backup-directory-alist (quote (("/Volumes/Files/" . "/Volumes/Files/.backups") ("\\(recentf\\|archive/sent\\)" . "/tmp") (".*" . "~/.emacs.d/backups"))))
  '(backward-delete-char-untabify-method (quote untabify))

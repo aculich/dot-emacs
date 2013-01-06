@@ -716,6 +716,14 @@ If MKDIR is non-nil then create NAME as a directory." `,sym)))
 
 ;;;_. Packages
 
+;;;_ , jka-cmpr-hook (aka auto-compression-mode)
+
+(use-package jka-cmpr-hook
+  :init
+  (progn
+    (setq auto-compression-mode t)
+    (require 'jka-compr)))
+
 ;;;_ , el-get
 
 (use-package el-get
