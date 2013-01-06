@@ -28,6 +28,7 @@
 ;; Tabbar for Workgroups from Windows, taken from ElScreen.  Just load this
 ;; file and away you go.
 
+(require 'alist)
 (require 'workgroups)
 
 (defgroup wg-tabs nil
