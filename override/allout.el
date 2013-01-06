@@ -1626,13 +1626,15 @@ and the place for the cursor after the decryption is done."
     (setq allout-after-save-decrypt nil))
   )
 ;;;_   > allout-called-interactively-p ()
-(defmacro allout-called-interactively-p ()
-  "A version of called-interactively-p independent of emacs version."
-  ;; ... to ease maintenance of allout without betraying deprecation.
-  (if (equal (subr-arity (symbol-function 'called-interactively-p))
-             '(0 . 0))
+(defmacro allout-called-interactively-p (&optional kind)
+  "A backward-compatible version of `called-interactively-p'.
+
+Optional KIND is as documented at `called-interactively-p'
+in GNU Emacs 24.1 or higher."
+  (if (string< emacs-version "24.1")
       '(called-interactively-p)
-    '(called-interactively-p 'interactive)))
+    `(called-interactively-p ,kind)))
+
 ;;;_   = allout-inhibit-aberrance-doublecheck nil
 ;; In some exceptional moments, disparate topic depths need to be allowed
 ;; momentarily, eg when one topic is being yanked into another and they're

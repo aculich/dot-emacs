@@ -310,7 +310,7 @@ Spellchecking is also disabled in the minibuffer."
 
 Optional KIND is as documented at `called-interactively-p'
 in GNU Emacs 24.1 or higher."
-  (if (eq 0 (cdr (subr-arity (symbol-function 'called-interactively-p))))
+  (if (string< emacs-version "24.1")
       '(called-interactively-p)
     `(called-interactively-p ,kind)))
 
