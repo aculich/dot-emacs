@@ -243,7 +243,6 @@
  '(session-globals-include (quote ((kill-ring 10 nil) (session-file-alist 200 t) (file-name-history 200 nil) search-ring regexp-search-ring sr-history-registry)))
  '(session-initialize (quote (session places keys)))
  '(session-registers (quote (t (0 . 127))))
- '(session-save-file "~/.emacs.d/data/session")
  '(show-paren-delay 0)
  '(slime-kill-without-query-p t)
  '(slime-repl-history-file "~/.emacs.d/data/slime-history.eld")

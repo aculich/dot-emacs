@@ -3208,6 +3208,7 @@ FORM => (eval FORM)."
   :load-path "site-lisp/session/lisp/"
   :init
   (progn
+    (setq session-save-file (user-cache-directory "session"))
     (session-initialize)
 
     (defun remove-session-use-package-from-settings ()
