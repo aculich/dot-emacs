@@ -19,7 +19,6 @@
  '(align-to-tab-stop nil)
  '(ansi-color-names-vector ["black" "red" "green" "brown" "blue" "magenta" "blue" "white"])
  '(auto-save-interval 1024)
- '(backup-directory-alist (quote (("/Volumes/Files/" . "/Volumes/Files/.backups") ("\\(recentf\\|archive/sent\\)" . "/tmp") (".*" . "~/.emacs.d/backups"))))
  '(backward-delete-char-untabify-method (quote untabify))
  '(bbdb-default-country "")
  '(bbdb-file "~/Documents/bbdb")
