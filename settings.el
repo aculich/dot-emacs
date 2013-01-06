@@ -19,7 +19,6 @@
  '(align-to-tab-stop nil)
  '(ansi-color-names-vector ["black" "red" "green" "brown" "blue" "magenta" "blue" "white"])
  '(auto-save-interval 1024)
- '(backward-delete-char-untabify-method (quote untabify))
  '(bbdb-default-country "")
  '(bbdb-file "~/Documents/bbdb")
  '(bbdb-message-caching-enabled nil)
