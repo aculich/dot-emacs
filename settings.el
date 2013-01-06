@@ -276,8 +276,6 @@
  '(trash-directory "~/.Trash")
  '(undo-limit 800000)
  '(uniquify-buffer-name-style (quote post-forward-angle-brackets) nil (uniquify))
- '(url-cache-directory "/Users/johnw/.emacs.d/data/url/cache")
- '(url-configuration-directory "~/.emacs.d/data/url/")
  '(url-irc-function (quote url-irc-erc))
  '(user-full-name "John Wiegley")
  '(user-initials "jww")

@@ -3518,6 +3518,14 @@ FORM => (eval FORM)."
    tramp-persistency-file-name (user-cache-directory "tramp")
    tramp-auto-save-directory (user-cache-directory "tramp-backups" t)))
 
+;;;_ , url
+
+(use-package url
+  :config
+  (setq
+   url-cache-directory (user-cache-directory "url")
+   url-configuration-directory (user-cache-directory "url")))
+
 ;;;_ , vkill
 
 (use-package vkill
