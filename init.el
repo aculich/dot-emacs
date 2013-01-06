@@ -909,7 +909,11 @@ If MKDIR is non-nil then create NAME as a directory." `,sym)))
 
         (when nil              ; jww (2012-06-20): this kills buffers
           ;; if you want to enable support for gnu global
-          (use-package semanticdb-global)
+          (use-package semanticdb-global
+            :config
+            (setq
+             semanticdb-default-save-directory
+             (user-cache-directory "semanticdb" t)))
 
           (semanticdb-enable-gnu-global-databases 'c-mode)
           (semanticdb-enable-gnu-global-databases 'c++-mode))))
