@@ -1403,6 +1403,12 @@ If MKDIR is non-nil then create NAME as a directory." `,sym)))
   :defer t
   :config
   (progn
+    (setq
+     bmkp-bmenu-commands-file (user-prefs-file "bmk-bmenu-commands.el")
+     bmkp-bmenu-state-file (user-prefs-file "bmk-bmenu-state.el")
+     bmkp-last-as-first-bookmark-file (user-prefs-file "bookmarks")
+     bookmark-default-file (user-prefs-file "bookmarks"))
+
     (use-package bookmark+)
 
     (defun my-bookmark-set ()
