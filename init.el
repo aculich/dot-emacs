@@ -737,7 +737,12 @@ If MKDIR is non-nil then create NAME as a directory." `,sym)))
              el-get-update
              el-get-list-packages)
   :init
-  (defvar el-get-sources nil)
+  (progn
+   (defvar el-get-sources nil)
+   (setq
+    el-get-auto-update-cached-recipes nil
+    el-get-dir (expand-file-name "site-lisp" user-emacs-directory)
+    el-get-generate-autoloads nil))
 
   :config
   (defun el-get-read-status-file ()
