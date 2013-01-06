@@ -7,6 +7,10 @@
 (unless noninteractive
   (message "Loading %s..." load-file-name))
 
+(set-default   'load-path load-path)
+(defvar default-load-path load-path
+  "The default system `load-path' before user config modifies it.")
+
 (load (expand-file-name "load-path" (file-name-directory load-file-name)))
 
 (require 'use-package)
