@@ -3510,6 +3510,14 @@ FORM => (eval FORM)."
                 (nth 1 entry)
               5)))))))
 
+;;;_ , tramp
+
+(use-package tramp
+  :config
+  (setq
+   tramp-persistency-file-name (user-cache-directory "tramp")
+   tramp-auto-save-directory (user-cache-directory "tramp-backups" t)))
+
 ;;;_ , vkill
 
 (use-package vkill
