@@ -1382,6 +1382,7 @@ If MKDIR is non-nil then create NAME as a directory." `,sym)))
 (use-package bm
   :pre-init
   (progn
+    (setq bc-bookmark-file (user-cache-directory "breadcrumb"))
     (defvar ctl-period-breadcrumb-map)
     (define-prefix-command 'ctl-period-breadcrumb-map)
     (bind-key "C-. c" 'ctl-period-breadcrumb-map))
