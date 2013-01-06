@@ -1212,7 +1212,8 @@ If MKDIR is non-nil then create NAME as a directory." `,sym)))
   :config
   (progn
     (ac-set-trigger-key "TAB")
-    (setq ac-use-menu-map t)
+    (setq ac-use-menu-map t
+          ac-comphist-file (user-cache-directory "ac-comphist.dat"))
 
     (bind-key "A-M-?" 'ac-last-help)
     (unbind-key "C-s" ac-completing-map)))

@@ -11,7 +11,6 @@
  '(TeX-view-program-selection (quote (((output-dvi style-pstricks) "dvips and gv") (output-dvi "xdvi") (output-pdf "Skim") (output-html "xdg-open"))))
  '(ac-auto-show-menu 1.0)
  '(ac-auto-start 3)
- '(ac-comphist-file "/Users/johnw/.emacs.d/data/ac-comphist.dat")
  '(ac-dwim nil)
  '(ac-ignore-case nil)
  '(ac-use-fuzzy nil)
