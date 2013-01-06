@@ -1438,6 +1438,7 @@ If MKDIR is non-nil then create NAME as a directory." `,sym)))
   :defer t
   :config
   (progn
+    (setq compilation-scroll-output t)
     (defun cmake-project-filename ()
       (let ((filename (match-string-no-properties 1)))
         (save-match-data
