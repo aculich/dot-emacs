@@ -824,7 +824,7 @@ If MKDIR is non-nil then create NAME as a directory." `,sym)))
       (diminish 'hs-minor-mode)
       (diminish 'hide-ifdef-mode)
 
-      (add-to-list 'load-path "~/.emacs.d/site-lisp/ghc-mod/elisp")
+      (add-to-list 'load-path (expand-file-name "ghc-mod/elisp" el-get-dir))
       (require 'ghc-flymake)            ; jww (2012-09-19): hack!
       (bind-key "M-?" 'ghc-flymake-display-errors c-mode-base-map)
       (bind-key "M-p" 'flymake-goto-prev-error c-mode-base-map)
