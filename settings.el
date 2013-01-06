@@ -230,7 +230,6 @@
  '(recentf-max-saved-items 2000)
  '(redisplay-dont-pause t t)
  '(regex-tool-backend (quote perl))
- '(runner-init-file "~/.emacs.d/runner-conf.el")
  '(safe-local-variable-values (quote ((eval require (quote edg)) (eval ignore-errors (require (quote edg))) (after-save-hook my-byte-recompile-file) (after-save-hook git-commit-changes) (org-refer-by-number-id . "1C72AB51-33C2-4FF8-9367-2B494D125027"))))
  '(sage-view-anti-aliasing-level 4)
  '(sage-view-margin (quote (20 . 20)))
