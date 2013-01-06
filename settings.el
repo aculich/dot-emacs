@@ -40,7 +40,6 @@
  '(calendar-standard-time-zone-name "CST")
  '(calendar-time-zone -420)
  '(canlock-password "8d2ee9a7e4658c4ff6d863f91a3dd5340b3918ec")
- '(column-number-mode t)
  '(compilation-context-lines 10)
  '(compilation-scroll-output t)
  '(compilation-skip-threshold 2)

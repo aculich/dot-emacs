@@ -714,7 +714,9 @@ If MKDIR is non-nil then create NAME as a directory." `,sym)))
 (bind-key "C-h e v" 'find-variable)
 (bind-key "C-h e V" 'apropos-value)
 
-(setq backward-delete-char-untabify-method 'untabify)
+(setq backward-delete-char-untabify-method 'untabify
+      column-number-mode t
+      )
 
 ;;;_. Packages
 
