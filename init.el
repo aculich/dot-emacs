@@ -3443,7 +3443,8 @@ FORM => (eval FORM)."
           w3m-file-name-coding-system 'utf-8
           w3m-input-coding-system 'utf-8
           w3m-output-coding-system 'utf-8
-          w3m-terminal-coding-system 'utf-8)
+          w3m-terminal-coding-system 'utf-8
+          w3m-fill-column 80)
 
     (add-hook 'w3m-mode-hook 'w3m-link-numbering-mode)
 
