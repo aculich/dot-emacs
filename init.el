@@ -2268,6 +2268,12 @@ FORM => (eval FORM)."
                  (bind-key "<return>" 'my-ielm-return ielm-map)))
               t)))
 
+;;;_ , image-dired
+(use-package image-dired
+  :config
+  (setq
+   image-dired-dir (user-cache-directory "image-dired" t)))
+
 ;;;_ , image-file
 
 (use-package image-file

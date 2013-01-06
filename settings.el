@@ -177,7 +177,6 @@
  '(ido-ignore-files (quote ("\\`CVS/" "\\`#" "\\`.#" "\\`\\.\\./" "\\`\\./" "\\`\\.DS_Store" "\\`\\.localized" "\\.sparsebundle/" "\\.dmg\\'")))
  '(ido-save-directory-list-file "~/.emacs.d/data/ido.last")
  '(ido-use-virtual-buffers t)
- '(image-dired-dir "~/.emacs.d/data/image-dired/")
  '(indent-tabs-mode nil)
  '(inhibit-startup-echo-area-message "johnw")
  '(inhibit-startup-screen t)
