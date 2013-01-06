@@ -2675,7 +2675,8 @@ FORM => (eval FORM)."
 
     (defun start-git-monitor ()
       (interactive)
-      (start-process "git-monitor" (current-buffer) "~/bin/git-monitor"))
+      (start-process "git-monitor" (current-buffer)
+                     (executable-find "git-monitor")))
 
     ;;(add-hook 'magit-status-mode-hook 'start-git-monitor)
     ))
