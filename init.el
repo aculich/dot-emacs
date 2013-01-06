@@ -3095,6 +3095,8 @@ FORM => (eval FORM)."
   :if (not noninteractive)
   :init
   (progn
+    (setq
+     recentf-save-file (user-cache-directory "recentf"))
     (recentf-mode 1)
 
     (defun recentf-add-dired-directory ()
