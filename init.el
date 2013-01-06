@@ -2981,6 +2981,10 @@ FORM => (eval FORM)."
 ;;;_ , persistent-scratch
 
 (use-package persistent-scratch
+  :config
+   (setq
+    persistent-scratch-file-name (user-cache-directory "persistent-scratch"))
+
   :if (and window-system (not running-alternate-emacs)
            (not noninteractive)))
 
