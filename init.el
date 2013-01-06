@@ -1092,6 +1092,7 @@ If MKDIR is non-nil then create NAME as a directory." `,sym)))
 
   :config
   (progn
+   (setq abbrev-file-name (user-cache-directory "abbrevs"))
    (if (file-exists-p abbrev-file-name)
        (quietly-read-abbrev-file))
 
