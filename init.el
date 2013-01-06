@@ -2820,6 +2820,10 @@ FORM => (eval FORM)."
 
   :config
   (progn
+    (setq
+     multi-term-program (executable-find "screen")
+     multi-term-program-switches "-DR"
+     multi-term-scroll-show-maximum-output t)
     (if t
         (defalias 'my-term-send-raw-at-prompt 'term-send-raw)
       (defun my-term-send-raw-at-prompt ()
