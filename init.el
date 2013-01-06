@@ -1122,6 +1122,8 @@ If MKDIR is non-nil then create NAME as a directory." `,sym)))
   (progn
     (defvar allout-unprefixed-keybindings nil)
 
+    (setq allout-command-prefix ".")
+
     (defun my-allout-mode-hook ()
       (dolist (mapping '((?b . allout-hide-bodies)
                          (?c . allout-hide-current-entry)
