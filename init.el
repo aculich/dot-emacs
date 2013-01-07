@@ -3050,6 +3050,10 @@ FORM => (eval FORM)."
   :commands mudel
   :bind ("C-c M" . mud)
   :init
+  (setq
+   mudel-mode-hook '(mudel-add-scroll-to-bottom)
+   mudel-output-filter-functions '(ansi-color-process-output))
+
   (defun mud ()
     (interactive)
     (mudel "4dimensions" "4dimensions.org" 6000)))
