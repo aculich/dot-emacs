@@ -2065,6 +2065,23 @@ FORM => (eval FORM)."
   :defer t
   :init
   (progn
+    (setq
+     eshell-directory-name (user-cache-directory "eshell" t)
+     eshell-history-size 1000
+     eshell-ls-dired-initial-args '("-h")
+     eshell-ls-exclude-regexp "~\\'"
+     eshell-ls-initial-args "-h"
+     eshell-modules-list '(eshell-alias eshell-basic eshell-cmpl eshell-dirs eshell-glob eshell-hist eshell-ls eshell-pred eshell-prompt eshell-rebind eshell-script eshell-smart eshell-term eshell-unix eshell-xtra)
+     eshell-prefer-to-shell t
+     eshell-save-history-on-exit t
+     eshell-stringify-t nil
+     eshell-term-name "ansi"
+     eshell-visual-commands
+     '("vi" "top" "screen" "tmux" "less" "lynx" "rlogin" "telnet")
+     eshell-prompt-function
+     (lambda nil (concat (abbreviate-file-name
+                          (eshell/pwd))
+                         (if (= (user-uid) 0) " # " " $ "))))
     (defun eshell-initialize ()
       (defun eshell-spawn-external-command (beg end)
         "Parse and expand any history references in current input."
