@@ -3900,6 +3900,17 @@ FORM => (eval FORM)."
    url-cache-directory (user-cache-directory "url")
    url-configuration-directory (user-cache-directory "url")))
 
+;;;_ , vc-hooks
+
+(use-package vc-hooks
+  :config
+  (setq
+   vc-command-messages t
+   vc-follow-symlinks t
+   vc-git-diff-switches '("-w" "-U3")
+   vc-handled-backends '(GIT SVN CVS Bzr Hg)
+   vc-make-backup-files t))
+
 ;;;_ , vkill
 
 (use-package vkill
