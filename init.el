@@ -2149,6 +2149,16 @@ FORM => (eval FORM)."
 (use-package fetchmail-mode
   :commands fetchmail-mode)
 
+;;;_ , irfc
+
+(use-package irfc
+  :config
+  (setq
+   irfc-directory (or
+                   (when (file-exists-p "/usr/share/doc/RFC/links/")
+                     "/usr/share/doc/RFC/links/")
+                   (user-cache-directory "RFC" t))))
+
 ;;;_ , flyspell
 
 (use-package ispell
