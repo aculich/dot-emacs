@@ -11,6 +11,34 @@
 (defvar default-load-path load-path
   "The default system `load-path' before user config modifies it.")
 
+(defvar user-prefs-directory (convert-standard-filename "~/.config/emacs")
+  "Store personal Emacs customizations in a standardized location
+  separate from `user-emacs-directory'.")
+
+(unless (file-exists-p user-prefs-directory)
+  (make-directory user-prefs-directory t))
+
+(defvar user-cache-directory (convert-standard-filename "~/.cache/emacs")
+  "Location for cached files that should persist longer than more
+  volatile files stored in /tmp but that are not configuration
+  files. This would include things like session information.")
+
+(unless (file-exists-p user-cache-directory)
+  (make-directory user-cache-directory t))
+
+;; generate functions for settings cache and prefs directories
+(dolist (sym '(user-cache-directory user-prefs-directory))
+  (let ((doc (format "Return NAME in `%s'.
+If MKDIR is non-nil then create NAME as a directory." `,sym)))
+    (eval `(defun ,sym (&optional name mkdir)
+             ,doc
+             (if name
+                 (let ((path (expand-file-name name ,sym)))
+                   (when (and mkdir (not (file-exists-p path)))
+                     (make-directory path t))
+                   path)
+               ,sym)))))
+
 (load (expand-file-name "load-path" (file-name-directory load-file-name)))
 
 (require 'use-package)

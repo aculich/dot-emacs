@@ -61,7 +61,6 @@
  '(coq-unicode-tokens-enable t)
  '(current-language-environment "UTF-8")
  '(custom-buffer-done-function (quote kill-buffer))
- '(custom-file "/Users/johnw/.emacs.d/settings.el")
  '(custom-raised-buttons nil)
  '(default-input-method "latin-1-prefix")
  '(default-major-mode (quote text-mode) t)
