@@ -3729,6 +3729,20 @@ FORM => (eval FORM)."
     (require 'sunrise-x-tree)
     (require 'sunrise-x-tabs)
 
+    (setq
+     sr-attributes-display-mask '(nil nil t nil nil nil)
+     sr-autoload-extensions nil
+     sr-kill-unused-buffers nil
+     sr-listing-switches "--time-style=locale --group-directories-first -alDhgG"
+     sr-loop-use-popups nil
+     sr-popviewer-style 'single-frame
+     sr-show-file-attributes nil
+     sr-show-hidden-files t
+     sr-use-commander-keys nil
+     sr-windows-default-ratio 80)
+
+    (add-to-list 'session-globals-include 'sr-history-registry t)
+
     (bind-key "/" 'sr-sticky-isearch-forward sr-mode-map)
     (bind-key "<backspace>" 'sr-scroll-quick-view-down sr-mode-map)
     (bind-key "C-x t" 'sr-toggle-truncate-lines sr-mode-map)
