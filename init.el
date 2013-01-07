@@ -3294,7 +3294,9 @@ FORM => (eval FORM)."
 
 (use-package pp-c-l
   :init
-  (hook-into-modes 'pretty-control-l-mode '(prog-mode-hook)))
+  (progn
+    (setq pp^L-^L-string "                                                                              ")
+    (hook-into-modes 'pretty-control-l-mode '(prog-mode-hook))))
 
 ;;;_ , proofgeneral
 
