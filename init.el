@@ -223,6 +223,9 @@ If MKDIR is non-nil then create NAME as a directory." `,sym)))
 ;;   C- ,'";:?<>|!#$%^&*`~ <tab>
 ;;   M- ?#
 
+(load "lisp/keydef.el")
+(load "lisp/global-keys.el")
+
 ;;;_ , global-map
 
 ;;;_  . C-?
