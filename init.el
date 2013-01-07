@@ -26,8 +26,16 @@
 (unless (file-exists-p user-cache-directory)
   (make-directory user-cache-directory t))
 
+(defvar user-docs-directory (convert-standard-filename "~/Documents")
+  "Location for document files.
+Use default location found on most modern desktop systems (such
+as Ubuntu and Mac OS) which is a directory in $HOME called
+Documents.")
+
 ;; generate functions for settings cache and prefs directories
-(dolist (sym '(user-cache-directory user-prefs-directory))
+(dolist (sym '(user-cache-directory
+               user-prefs-directory
+               user-docs-directory))
   (let ((doc (format "Return NAME in `%s'.
 If MKDIR is non-nil then create NAME as a directory." `,sym)))
     (eval `(defun ,sym (&optional name mkdir)
