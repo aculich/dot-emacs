@@ -3509,7 +3509,16 @@ FORM => (eval FORM)."
   :load-path "site-lisp/session/lisp/"
   :init
   (progn
-    (setq session-save-file (user-cache-directory "session"))
+    (setq session-save-file (user-cache-directory "session")
+          session-globals-exclude '(load-history flyspell-auto-correct-ring)
+          session-globals-include '((kill-ring 10 nil)
+                                    (session-file-alist 200 t)
+                                    (file-name-history 200 nil)
+                                    search-ring
+                                    regexp-search-ring)
+          session-initialize '(session places keys)
+          session-registers '(t (0 . 127)))
+
     (session-initialize)
 
     (defun remove-session-use-package-from-settings ()
