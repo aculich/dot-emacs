@@ -4276,7 +4276,11 @@ FORM => (eval FORM)."
 (use-package yaoddmuse
   :bind (("C-c w f" . yaoddmuse-browse-page-default)
          ("C-c w e" . yaoddmuse-edit-default)
-         ("C-c w p" . yaoddmuse-post-library-default)))
+         ("C-c w p" . yaoddmuse-post-library-default))
+  :init
+  (setq
+   yaoddmuse-browse-function 'w3m-browse-url
+   yaoddmuse-directory (user-prefs-directory "yaoddmuse")))
 
 ;;;_ , zencoding-mode
 
