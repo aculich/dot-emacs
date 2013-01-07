@@ -3171,6 +3171,12 @@ FORM => (eval FORM)."
 
     (bind-key "C-H" 'tidy-xml-buffer nxml-mode-map)))
 
+;;;_ , offlineimap
+
+(use-package offlineimap
+  :config
+  (setq offlineimap-command "offlineimap -u machineui"))
+
 ;;;_ , org-mode
 
 (use-package dot-org
