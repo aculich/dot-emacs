@@ -2644,8 +2644,13 @@ FORM => (eval FORM)."
 
 (use-package lisp-mode
   ;; :load-path "site-lisp/slime/contrib/"
+  :bind (("M-." . find-function)
+	 ("C-m" . newline-and-indent))
   :init
   (progn
+    (add-hook 'emacs-lisp-mode-hook #'(lambda ()
+					(ignore-errors
+					  (diminish 'auto-fill-function))))
     (defface esk-paren-face
       '((((class color) (background dark))
          (:foreground "grey50"))
