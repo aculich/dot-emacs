@@ -1934,43 +1934,55 @@ The output appears in the buffer `*Async Shell Command*'."
 
     (add-hook 'erc-mode-hook 'setup-irc-environment)
 
+    (use-package url
+      :defer t
+      :config
+      (setq url-irc-function 'url-irc-erc))
+
     (defun irc ()
       (interactive)
 
       (erc-tls :server "irc.freenode.net"
                :port 6697
-               :nick "johnw"
+               :nick erc-nick
                :password (funcall
                           (plist-get
                            (car (auth-source-search :host "irc.freenode.net"
-                                                    :user "johnw"
+                                                    :user erc-nick
                                                     :type 'netrc
-                                                    :port 6667))
-                           :secret)))
-
-      (erc :server "irc.well-typed.com"
-           :port 6665
-           :nick "johnw")
-      )
-
-    (defun im ()
-      (interactive)
-      (erc :server "localhost"
-           :port 6667
-           :nick "johnw"
-           :password (funcall
-                      (plist-get
-                       (car (auth-source-search :host "bitlbee"
-                                                :user "johnw"
-                                                :type 'netrc
-                                                :port 6667))
-                       :secret))))
+                                                    :port 6697))
+                           :secret))))
 
     ;; (add-hook 'after-init-hook 'im)
     (add-hook 'after-init-hook 'irc))
 
   :config
   (progn
+    (setq
+     erc-auto-query 'window-noselect
+     erc-autoaway-message "I'm away (after %i seconds of idle-time)"
+     erc-autojoin-mode t
+     erc-fill-function 'erc-fill-variable
+     erc-fill-static-center 12
+     erc-generate-log-file-name-function 'erc-generate-log-file-name-short
+     erc-header-line-format nil
+     erc-hide-list '("JOIN" "NICK" "PART" "QUIT" "MODE")
+     erc-log-write-after-send t
+     erc-priority-people-regexp "\\`[^#].+"
+     erc-replace-alist '(("</?FONT>" . ""))
+     erc-server "irc.freenode.net"
+     erc-services-mode t
+     erc-text-matched-hook '(erc-log-matches erc-hide-fools my-erc-hook)
+     erc-track-enable-keybindings t
+     erc-track-exclude-types '("JOIN" "KICK" "NICK" "PART" "QUIT" "MODE" "333" "353")
+     erc-track-faces-priority-list '(erc-error-face
+				     (erc-nick-default-face erc-current-nick-face)
+				     erc-current-nick-face erc-keyword-face
+				     (erc-nick-default-face erc-pal-face)
+				     erc-pal-face erc-nick-msg-face
+				     erc-direct-msg-face)
+     erc-user-full-name 'user-full-name)
+
     (erc-track-minor-mode 1)
     (erc-track-mode 1)
 
