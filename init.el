@@ -104,6 +104,12 @@ If MKDIR is non-nil then create NAME as a directory." `,sym)))
 
 ;;;_ , Load customization settings
 
+(setq custom-file (expand-file-name "custom.el" user-prefs-directory))
+(defun custom-file-load ()
+  (interactive)
+  (when (file-exists-p custom-file)
+    (load custom-file)))
+
 (defvar running-alternate-emacs nil)
 
 (if (string-match (concat "/Applications/\\(Misc/\\)?"
@@ -134,7 +140,7 @@ If MKDIR is non-nil then create NAME as a directory." `,sym)))
 
         (eval settings)))
 
-  (load (expand-file-name "settings" user-emacs-directory)))
+  (custom-file-load))
 
 ;;;_ , Enable disabled commands
 
@@ -3812,6 +3818,13 @@ FORM => (eval FORM)."
                  (message "Loading %s...done (%.3fs) [after-init]"
                           ,load-file-name elapsed)))
             t))
+
+;; NOTE: The add-hook below *MUST* be the last line in this file!
+;; This ensures that user's custom-file is loaded last to override all
+;; other customizations. The custom-file-load function should be added
+;; as the FIRST item in after-init-hook so that other hook functions
+;; (e.g. desktop.el) will run with the proper customizations loaded!
+(add-hook 'after-init-hook 'custom-file-load nil)
 
 ;; Local Variables:
 ;;   mode: emacs-lisp
