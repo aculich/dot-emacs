@@ -3794,6 +3794,12 @@ FORM => (eval FORM)."
 
 ;;;_. Post initialization
 
+;; NOTE: add other items to load-path ABOVE this line
+;; The user-prefs-directory should be added as the FIRST item in
+;; load-path so that the user's own customizations will override
+;; everything else!
+(add-to-list 'load-path user-prefs-directory nil)
+
 (when window-system
   (let ((elapsed (float-time (time-subtract (current-time)
                                             emacs-start-time))))
