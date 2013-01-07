@@ -1544,7 +1544,10 @@ If MKDIR is non-nil then create NAME as a directory." `,sym)))
       (bind-key "M-O" 'isearch-moccur-all isearch-mode-map))
 
     :config
-    (use-package moccur-edit)))
+    (progn
+      (setq
+       moccur-following-mode-toggle nil)
+      (use-package moccur-edit))))
 
 ;;;_ , copy-code
 
