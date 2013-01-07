@@ -111,6 +111,46 @@ If MKDIR is non-nil then create NAME as a directory." `,sym)))
 (read-system-environment)
 (add-hook 'after-init-hook 'read-system-environment)
 
+;;;_ , Package-less defaults
+
+(setq
+ backward-delete-char-untabify-method 'untabify
+ column-number-mode t
+ default-major-mode 'text-mode
+ directory-free-space-args "-kh"
+ enable-recursive-minibuffers t
+ font-lock-support-mode 'jit-lock-mode
+ font-lock-verbose nil
+ gc-cons-threshold 3500000
+ history-delete-duplicates t
+ history-length 200
+ indent-tabs-mode nil
+ initial-major-mode 'fundamental-mode
+ kill-do-not-save-duplicates t
+ kill-read-only-ok t
+ kill-whole-line nil
+ line-number-mode t
+ modelinepos-column-limit 80
+ redisplay-dont-pause t
+ same-window-buffer-names '("*eshell*"
+                            "*shell*"
+                            "*mail*"
+                            "*inferior-lisp*"
+                            "*ielm*"
+                            "*scheme*")
+ save-abbrevs 'silently
+ save-interprogram-paste-before-kill t
+ scroll-bar-mode nil
+ tool-bar-mode nil
+ version-control t
+ x-select-enable-clipboard t
+ x-stretch-cursor t)
+
+(add-hook 'text-mode-hook 'turn-on-auto-fill)
+(add-hook 'text-mode-hook #'(lambda ()
+			      (ignore-errors
+				(diminish 'auto-fill-function))))
+
 ;;;_ , Load customization settings
 
 (setq custom-file (expand-file-name "custom.el" user-prefs-directory))
@@ -722,10 +762,6 @@ If MKDIR is non-nil then create NAME as a directory." `,sym)))
 (bind-key "C-h e s" 'scratch)
 (bind-key "C-h e v" 'find-variable)
 (bind-key "C-h e V" 'apropos-value)
-
-(setq backward-delete-char-untabify-method 'untabify
-      column-number-mode t
-      )
 
 ;;;_. Packages
 
