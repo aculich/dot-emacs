@@ -3881,7 +3881,9 @@ FORM => (eval FORM)."
   :config
   (setq
    tramp-persistency-file-name (user-cache-directory "tramp")
-   tramp-auto-save-directory (user-cache-directory "tramp-backups" t)))
+   tramp-auto-save-directory (user-cache-directory "tramp-backups" t)
+   tramp-default-method-alist
+   '(("\\`\\(127\\.0\\.0\\.1\\|::1\\|localhost6?\\)\\'" "\\`root\\'" "sudo"))))
 
 ;;;_ , url
 
