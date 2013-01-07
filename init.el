@@ -2564,6 +2564,7 @@ FORM => (eval FORM)."
   :commands ipa-insert
   :init
   (progn
+    (setq ipa-file (user-docs-directory "ipa-annotations"))
     (autoload 'ipa-load-annotations-into-buffer "ipa")
     (add-hook 'find-file-hook 'ipa-load-annotations-into-buffer)))
 
