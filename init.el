@@ -3467,10 +3467,16 @@ FORM => (eval FORM)."
 ;;;_ , sage-mode
 
 (use-package sage
-  :load-path "/Applications/Misc/sage/data/emacs/"
+  :if (executable-find "sage")
   :init
   (progn
-    (setq sage-command "/Applications/Misc/sage/sage")
+    (setq sage-command (executable-find "sage")
+          sage-view-anti-aliasing-level 4
+          sage-view-margin '(20 . 20)
+          sage-view-scale 2.0)
+
+    (add-to-list 'load-path
+                 (expand-file-name "data/emacs" (file-name-directory sage-command)))
 
     ;; If you want sage-view to typeset all your output and have plot()
     ;; commands inline, uncomment the following line and configure sage-view:
