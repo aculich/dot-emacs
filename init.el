@@ -7,7 +7,48 @@
 (unless noninteractive
   (message "Loading %s..." load-file-name))
 
-(load (expand-file-name "load-path" (file-name-directory load-file-name)))
+(set-default   'load-path load-path)
+(defvar default-load-path load-path
+  "The default system `load-path' before user config modifies it.")
+
+(defvar user-prefs-directory (convert-standard-filename "~/.config/emacs")
+  "Store personal Emacs customizations in a standardized location
+  separate from `user-emacs-directory'.")
+
+(unless (file-exists-p user-prefs-directory)
+  (make-directory user-prefs-directory t))
+
+(defvar user-cache-directory (convert-standard-filename "~/.cache/emacs")
+  "Location for cached files that should persist longer than more
+  volatile files stored in /tmp but that are not configuration
+  files. This would include things like session information.")
+
+(unless (file-exists-p user-cache-directory)
+  (make-directory user-cache-directory t))
+
+(defvar user-docs-directory (convert-standard-filename "~/Documents")
+  "Location for document files.
+Use default location found on most modern desktop systems (such
+as Ubuntu and Mac OS) which is a directory in $HOME called
+Documents.")
+
+;; generate functions for settings cache and prefs directories
+(dolist (sym '(user-cache-directory
+               user-prefs-directory
+               user-docs-directory))
+  (let ((doc (format "Return NAME in `%s'.
+If MKDIR is non-nil then create NAME as a directory." `,sym)))
+    (eval `(defun ,sym (&optional name mkdir)
+             ,doc
+             (if name
+                 (let ((path (expand-file-name name ,sym)))
+                   (when (and mkdir (not (file-exists-p path)))
+                     (make-directory path t))
+                   path)
+               ,sym)))))
+
+(when load-file-name
+ (load (expand-file-name "load-path" (file-name-directory load-file-name))))
 
 (require 'use-package)
 (eval-when-compile
@@ -70,7 +111,53 @@
 (read-system-environment)
 (add-hook 'after-init-hook 'read-system-environment)
 
+;;;_ , Package-less defaults
+
+(setq
+ backward-delete-char-untabify-method 'untabify
+ column-number-mode t
+ default-major-mode 'text-mode
+ directory-free-space-args "-kh"
+ enable-recursive-minibuffers t
+ font-lock-support-mode 'jit-lock-mode
+ font-lock-verbose nil
+ gc-cons-threshold 3500000
+ history-delete-duplicates t
+ history-length 200
+ indent-tabs-mode nil
+ initial-major-mode 'fundamental-mode
+ kill-do-not-save-duplicates t
+ kill-read-only-ok t
+ kill-whole-line nil
+ line-number-mode t
+ modelinepos-column-limit 80
+ redisplay-dont-pause t
+ same-window-buffer-names '("*eshell*"
+                            "*shell*"
+                            "*mail*"
+                            "*inferior-lisp*"
+                            "*ielm*"
+                            "*scheme*")
+ save-abbrevs 'silently
+ save-interprogram-paste-before-kill t
+ scroll-bar-mode nil
+ tool-bar-mode nil
+ version-control t
+ x-select-enable-clipboard t
+ x-stretch-cursor t)
+
+(add-hook 'text-mode-hook 'turn-on-auto-fill)
+(add-hook 'text-mode-hook #'(lambda ()
+			      (ignore-errors
+				(diminish 'auto-fill-function))))
+
 ;;;_ , Load customization settings
+
+(setq custom-file (expand-file-name "custom.el" user-prefs-directory))
+(defun custom-file-load ()
+  (interactive)
+  (when (file-exists-p custom-file)
+    (load custom-file)))
 
 (defvar running-alternate-emacs nil)
 
@@ -102,7 +189,7 @@
 
         (eval settings)))
 
-  (load (expand-file-name "settings" user-emacs-directory)))
+  (custom-file-load))
 
 ;;;_ , Enable disabled commands
 
@@ -375,7 +462,6 @@
 (bind-key "C-c e l" 'find-library)
 (bind-key "C-c e r" 'eval-region)
 (bind-key "C-c e s" 'scratch)
-(bind-key "C-c e v" 'edit-variable)
 
 (defun find-which (name)
   (interactive "sCommand name: ")
@@ -678,6 +764,14 @@
 
 ;;;_. Packages
 
+;;;_ , jka-cmpr-hook (aka auto-compression-mode)
+
+(use-package jka-cmpr-hook
+  :init
+  (progn
+    (setq auto-compression-mode t)
+    (require 'jka-compr)))
+
 ;;;_ , el-get
 
 (use-package el-get
@@ -687,7 +781,12 @@
              el-get-update
              el-get-list-packages)
   :init
-  (defvar el-get-sources nil)
+  (progn
+   (defvar el-get-sources nil)
+   (setq
+    el-get-auto-update-cached-recipes nil
+    el-get-dir (expand-file-name "site-lisp" user-emacs-directory)
+    el-get-generate-autoloads nil))
 
   :config
   (defun el-get-read-status-file ()
@@ -769,7 +868,7 @@
       (diminish 'hs-minor-mode)
       (diminish 'hide-ifdef-mode)
 
-      (add-to-list 'load-path "~/.emacs.d/site-lisp/ghc-mod/elisp")
+      (add-to-list 'load-path (expand-file-name "ghc-mod/elisp" el-get-dir))
       (require 'ghc-flymake)            ; jww (2012-09-19): hack!
       (bind-key "M-?" 'ghc-flymake-display-errors c-mode-base-map)
       (bind-key "M-p" 'flymake-goto-prev-error c-mode-base-map)
@@ -859,7 +958,11 @@
 
         (when nil              ; jww (2012-06-20): this kills buffers
           ;; if you want to enable support for gnu global
-          (use-package semanticdb-global)
+          (use-package semanticdb-global
+            :config
+            (setq
+             semanticdb-default-save-directory
+             (user-cache-directory "semanticdb" t)))
 
           (semanticdb-enable-gnu-global-databases 'c-mode)
           (semanticdb-enable-gnu-global-databases 'c++-mode))))
@@ -1054,6 +1157,7 @@
 
   :config
   (progn
+   (setq abbrev-file-name (user-cache-directory "abbrevs"))
    (if (file-exists-p abbrev-file-name)
        (quietly-read-abbrev-file))
 
@@ -1082,6 +1186,8 @@
   :config
   (progn
     (defvar allout-unprefixed-keybindings nil)
+
+    (setq allout-command-prefix ".")
 
     (defun my-allout-mode-hook ()
       (dolist (mapping '((?b . allout-hide-bodies)
@@ -1167,13 +1273,15 @@
   :diminish auto-complete-mode
   :init
   (progn
+    (setq global-auto-complete-mode t)
     (use-package pos-tip)
     (ac-config-default))
 
   :config
   (progn
     (ac-set-trigger-key "TAB")
-    (setq ac-use-menu-map t)
+    (setq ac-use-menu-map t
+          ac-comphist-file (user-cache-directory "ac-comphist.dat"))
 
     (bind-key "A-M-?" 'ac-last-help)
     (unbind-key "C-s" ac-completing-map)))
@@ -1207,11 +1315,14 @@
   :defer t
   :init
   (progn
-    (autoload 'backup-each-save "backup-each-save")
-    (add-hook 'after-save-hook 'backup-each-save)
-
     (defun my-make-backup-file-name (file)
       (make-backup-file-name-1 (file-truename file)))
+
+    (setq backup-directory-alist
+          (list (cons ".*" (user-cache-directory "backups" t)))
+          make-backup-file-name-function 'my-make-backup-file-name)
+    (autoload 'backup-each-save "backup-each-save")
+    (add-hook 'after-save-hook 'backup-each-save)
 
     (defun show-backups ()
       (interactive)
@@ -1321,6 +1432,20 @@
 
 (use-package bbdb-com
   :commands bbdb-create
+  :config
+  (setq
+   bbdb-default-country ""
+   bbdb-file (user-docs-directory "bbdb")
+   bbdb-message-caching-enabled nil
+   bbdb-no-duplicates t
+   bbdb-offer-save (quote savenoprompt)
+   bbdb-silent-running t
+   bbdb-use-pop-up nil
+   bbdb/mail-auto-create-p nil
+   bbdb-vcard-import-translation-table '(("CELL\\|CAR" . "Mobile")
+                                         ("WORK" . "Work")
+                                         ("HOME" . "Home")
+                                         ("^$" . "Work")))
   :bind ("M-B" . bbdb))
 
 ;;;_ , bm
@@ -1328,6 +1453,7 @@
 (use-package bm
   :pre-init
   (progn
+    (setq bc-bookmark-file (user-cache-directory "breadcrumb"))
     (defvar ctl-period-breadcrumb-map)
     (define-prefix-command 'ctl-period-breadcrumb-map)
     (bind-key "C-. c" 'ctl-period-breadcrumb-map))
@@ -1348,6 +1474,12 @@
   :defer t
   :config
   (progn
+    (setq
+     bmkp-bmenu-commands-file (user-prefs-file "bmk-bmenu-commands.el")
+     bmkp-bmenu-state-file (user-prefs-file "bmk-bmenu-state.el")
+     bmkp-last-as-first-bookmark-file (user-prefs-file "bookmarks")
+     bookmark-default-file (user-prefs-file "bookmarks"))
+
     (use-package bookmark+)
 
     (defun my-bookmark-set ()
@@ -1375,6 +1507,7 @@
   :defer t
   :config
   (progn
+    (setq compilation-scroll-output t)
     (defun cmake-project-filename ()
       (let ((filename (match-string-no-properties 1)))
         (save-match-data
@@ -1410,7 +1543,10 @@
       (bind-key "M-O" 'isearch-moccur-all isearch-mode-map))
 
     :config
-    (use-package moccur-edit)))
+    (progn
+      (setq
+       moccur-following-mode-toggle nil)
+      (use-package moccur-edit))))
 
 ;;;_ , copy-code
 
@@ -1501,10 +1637,21 @@ iflipb-next-buffer or iflipb-previous-buffer this round."
 (use-package dedicated
   :bind ("C-. d" . dedicated-mode))
 
+;;;_ , deft
+(use-package deft
+  :init
+  (setq deft-directory (user-docs-directory "deft" t))
+  :config
+  (setq
+   deft-auto-save-interval 0.0
+   deft-text-mode 'org-mode))
+
 ;;;_ , diff-mode
 
 (use-package diff-mode
   :commands diff-mode
+  :init
+  (setq diff-mode-hook '(diff-delete-empty-files diff-make-unified smerge-mode))
   :config
   (use-package diff-mode-))
 
@@ -1514,12 +1661,27 @@ iflipb-next-buffer or iflipb-previous-buffer this round."
   :defer t
   :config
   (progn
+    (setq
+     dired-async-use-native-commands t
+     dired-clean-up-buffers-too nil
+     dired-dwim-target t
+     dired-listing-switches "-lah"
+     dired-no-confirm '(byte-compile chgrp chmod chown copy hardlink symlink touch)
+     dired-omit-files "^\\.?#\\|^\\.\\(DS_Store\\|localized\\|AppleDouble\\)$\\|^\\.\\.$"
+     dired-omit-mode nil
+     dired-recursive-copies 'always
+     dired-recursive-deletes 'always
+     diredful-init-file (user-prefs-directory "diredful-conf.el"))
+
     (defun dired-package-initialize ()
       (unless (featurep 'runner)
         (use-package dired-x)
         ;; (use-package dired-async)
         (use-package dired-sort-map)
-        (use-package runner)
+        (use-package runner
+          :config
+          (setq
+           runner-init-file (user-prefs-directory "runner-conf.el")))
         (use-package dired-details-hide
           :commands dired-details-toggle)
 
@@ -1674,7 +1836,21 @@ The output appears in the buffer `*Async Shell Command*'."
          ("C-. = l" . ediff-regions-linewise)
          ("C-. = w" . ediff-regions-wordwise))
   :config
-  (use-package ediff-keep))
+  (progn
+    (setq
+     ediff-combination-pattern (quote ("<<<<<<< A: HEAD" A "||||||| Ancestor" Ancestor "=======" B ">>>>>>> B: Incoming"))
+     ediff-diff-options "-w"
+     ediff-highlight-all-diffs nil
+     ediff-merge-split-window-function 'split-window-vertically
+     ediff-show-clashes-only t
+     ediff-split-window-function 'split-window-horizontally
+     ediff-window-setup-function 'ediff-setup-windows-plain)
+    (use-package ediff-keep)))
+
+;;;_ , edit-var
+
+(use-package edit-var
+  :bind ("C-c e v" . edit-variable))
 
 ;;;_ , edit-server
 
@@ -1683,6 +1859,7 @@ The output appears in the buffer `*Async Shell Command*'."
            (not noninteractive))
   :init
   (progn
+    (setq edit-server-new-frame nil)
     (add-hook 'after-init-hook 'server-start t)
     (add-hook 'after-init-hook 'edit-server-start t)))
 
@@ -1757,43 +1934,55 @@ The output appears in the buffer `*Async Shell Command*'."
 
     (add-hook 'erc-mode-hook 'setup-irc-environment)
 
+    (use-package url
+      :defer t
+      :config
+      (setq url-irc-function 'url-irc-erc))
+
     (defun irc ()
       (interactive)
 
       (erc-tls :server "irc.freenode.net"
                :port 6697
-               :nick "johnw"
+               :nick erc-nick
                :password (funcall
                           (plist-get
                            (car (auth-source-search :host "irc.freenode.net"
-                                                    :user "johnw"
+                                                    :user erc-nick
                                                     :type 'netrc
-                                                    :port 6667))
-                           :secret)))
-
-      (erc :server "irc.well-typed.com"
-           :port 6665
-           :nick "johnw")
-      )
-
-    (defun im ()
-      (interactive)
-      (erc :server "localhost"
-           :port 6667
-           :nick "johnw"
-           :password (funcall
-                      (plist-get
-                       (car (auth-source-search :host "bitlbee"
-                                                :user "johnw"
-                                                :type 'netrc
-                                                :port 6667))
-                       :secret))))
+                                                    :port 6697))
+                           :secret))))
 
     ;; (add-hook 'after-init-hook 'im)
     (add-hook 'after-init-hook 'irc))
 
   :config
   (progn
+    (setq
+     erc-auto-query 'window-noselect
+     erc-autoaway-message "I'm away (after %i seconds of idle-time)"
+     erc-autojoin-mode t
+     erc-fill-function 'erc-fill-variable
+     erc-fill-static-center 12
+     erc-generate-log-file-name-function 'erc-generate-log-file-name-short
+     erc-header-line-format nil
+     erc-hide-list '("JOIN" "NICK" "PART" "QUIT" "MODE")
+     erc-log-write-after-send t
+     erc-priority-people-regexp "\\`[^#].+"
+     erc-replace-alist '(("</?FONT>" . ""))
+     erc-server "irc.freenode.net"
+     erc-services-mode t
+     erc-text-matched-hook '(erc-log-matches erc-hide-fools my-erc-hook)
+     erc-track-enable-keybindings t
+     erc-track-exclude-types '("JOIN" "KICK" "NICK" "PART" "QUIT" "MODE" "333" "353")
+     erc-track-faces-priority-list '(erc-error-face
+				     (erc-nick-default-face erc-current-nick-face)
+				     erc-current-nick-face erc-keyword-face
+				     (erc-nick-default-face erc-pal-face)
+				     erc-pal-face erc-nick-msg-face
+				     erc-direct-msg-face)
+     erc-user-full-name 'user-full-name)
+
     (erc-track-minor-mode 1)
     (erc-track-mode 1)
 
@@ -1876,6 +2065,23 @@ FORM => (eval FORM)."
   :defer t
   :init
   (progn
+    (setq
+     eshell-directory-name (user-cache-directory "eshell" t)
+     eshell-history-size 1000
+     eshell-ls-dired-initial-args '("-h")
+     eshell-ls-exclude-regexp "~\\'"
+     eshell-ls-initial-args "-h"
+     eshell-modules-list '(eshell-alias eshell-basic eshell-cmpl eshell-dirs eshell-glob eshell-hist eshell-ls eshell-pred eshell-prompt eshell-rebind eshell-script eshell-smart eshell-term eshell-unix eshell-xtra)
+     eshell-prefer-to-shell t
+     eshell-save-history-on-exit t
+     eshell-stringify-t nil
+     eshell-term-name "ansi"
+     eshell-visual-commands
+     '("vi" "top" "screen" "tmux" "less" "lynx" "rlogin" "telnet")
+     eshell-prompt-function
+     (lambda nil (concat (abbreviate-file-name
+                          (eshell/pwd))
+                         (if (= (user-uid) 0) " # " " $ "))))
     (defun eshell-initialize ()
       (defun eshell-spawn-external-command (beg end)
         "Parse and expand any history references in current input."
@@ -1910,6 +2116,20 @@ FORM => (eval FORM)."
   :load-path "site-lisp/ess/lisp/"
   :commands R)
 
+;;;_ , etags
+
+(use-package etags
+  :config
+  (setq
+   tags-apropos-verbose t
+   tags-case-fold-search nil))
+
+;;;_ , eudc
+
+(use-package eudc
+  :config
+  (setq eudc-inline-expansion-format '("%s <%s>" name email)))
+
 ;;;_ , eval-expr
 
 (use-package eval-expr
@@ -1929,6 +2149,16 @@ FORM => (eval FORM)."
 (use-package fetchmail-mode
   :commands fetchmail-mode)
 
+;;;_ , irfc
+
+(use-package irfc
+  :config
+  (setq
+   irfc-directory (or
+                   (when (file-exists-p "/usr/share/doc/RFC/links/")
+                     "/usr/share/doc/RFC/links/")
+                   (user-cache-directory "RFC" t))))
+
 ;;;_ , flyspell
 
 (use-package ispell
@@ -1942,6 +2172,10 @@ FORM => (eval FORM)."
   :bind (("C-c i b" . flyspell-buffer)
          ("C-c i f" . flyspell-mode))
   :config
+  (setq
+   flyspell-abbrev-p nil
+   flyspell-incorrect-hook '(flyspell-maybe-correct-transposition)
+   flyspell-use-meta-tab nil)
   (define-key flyspell-mode-map [(control ?.)] nil))
 
 ;;;_ , fold-dwim
@@ -2106,10 +2340,70 @@ FORM => (eval FORM)."
   :config
   (use-package hl-line+))
 
+;;;_ , hpaste
+
+(use-package hpaste
+  :defer t
+  :config
+  (use-package erc)
+  (setq
+   hpaste-announce 'always
+   hpaste-blank-title nil
+   hpaste-channel "#haskell"
+   hpaste-default-lang "haskell"
+   hpaste-default-nick (erc-compute-nick)
+   hpaste-lang 'always))
+
 ;;;_ , ibuffer
 
 (use-package ibuffer
-  :bind ("C-x C-b" . ibuffer))
+  :bind ("C-x C-b" . ibuffer)
+  :config
+  (setq
+   ibuffer-default-display-maybe-show-predicates t
+   ibuffer-expert t
+   ibuffer-maybe-show-regexps nil
+   ibuffer-show-empty-filter-groups nil
+   ibuffer-shrink-to-minimum-size t
+   ibuffer-use-other-window t
+   ibuffer-formats '((mark modified read-only " " (name 16 -1) " "
+                           (size 6 -1 :right) " " (mode 16 16) " "
+                           filename)
+                     (mark " " (name 16 -1) " " filename))
+   ibuffer-saved-filter-groups '(("default" ("Commands"
+                                             (or (mode . shell-mode)
+                                                 (mode . eshell-mode)
+                                                 (mode . term-mode)
+                                                 (mode . compilation-mode)))
+                                  ("Helm"        (mode . helm-mode))
+                                  ("Magit"   (or (mode . magit-status-mode)
+                                                 (mode . magit-log-mode)))
+                                  ("C++"     (or (mode . c-mode)
+                                                 (mode . c++-mode)))
+                                  ("Lisp"        (mode . emacs-lisp-mode))
+                                  ("Dired"       (mode . dired-mode))
+                                  ("Gnus"    (or (mode . message-mode)
+                                                 (mode . mail-mode)
+                                                 (mode . gnus-group-mode)
+                                                 (mode . gnus-summary-mode)
+                                                 (mode . gnus-article-mode)
+                                                 (name . "^\\.newsrc-dribble")))
+                                  ("Org"     (or (name . "^\\*Calendar\\*$")
+                                                 (name . "^diary$")
+                                                 (mode . org-mode)))
+                                  ("Emacs"   (or (name . "^\\*scratch\\*$")
+                                                 (name . "^\\*Messages\\*$")))))))
+
+;;;_ , icicle
+
+(use-package icicle
+  :config
+  (setq
+   icicle-Completions-text-scale-decrease 0
+   icicle-apropos-cycle-next-keys '([next] [(control 110)])
+   icicle-apropos-cycle-previous-keys '([prior] [(control 112)])
+   icicle-incremental-completion nil
+   icicle-max-candidates 100))
 
 ;;;_ , ido
 
@@ -2124,6 +2418,23 @@ FORM => (eval FORM)."
 
   :config
   (progn
+    (setq
+     read-buffer-function 'ido-read-buffer
+     ido-auto-merge-work-directories-length 0
+     ido-cannot-complete-command 'ido-exit-minibuffer
+     ido-enable-flex-matching t
+     ido-enable-last-directory-history nil
+     ido-enable-tramp-completion nil
+     ido-enter-matching-directory 'first
+     ido-ubiquitous-mode t
+     ido-use-virtual-buffers t
+     ido-save-directory-list-file (user-cache-directory "ido.last")
+     ido-decorations '("{" "}" "," ",..." "[" "]" " [No match]" " [Matched]"
+                       " [Not readable]" " [Too big]" " [Confirm]")
+     ido-ignore-files '("\\`CVS/" "\\`#" "\\`.#" "\\`\\.\\./" "\\`\\./"
+                        "\\`\\.DS_Store" "\\`\\.localized" "\\.sparsebundle/"
+                        "\\.dmg\\'"))
+
     (use-package ido-hacks
       :init
       (ido-hacks-mode 1))
@@ -2204,6 +2515,12 @@ FORM => (eval FORM)."
                  (bind-key "<return>" 'my-ielm-return ielm-map)))
               t)))
 
+;;;_ , image-dired
+(use-package image-dired
+  :config
+  (setq
+   image-dired-dir (user-cache-directory "image-dired" t)))
+
 ;;;_ , image-file
 
 (use-package image-file
@@ -2247,6 +2564,7 @@ FORM => (eval FORM)."
   :commands ipa-insert
   :init
   (progn
+    (setq ipa-file (user-docs-directory "ipa-annotations"))
     (autoload 'ipa-load-annotations-into-buffer "ipa")
     (add-hook 'find-file-hook 'ipa-load-annotations-into-buffer)))
 
@@ -2261,9 +2579,15 @@ FORM => (eval FORM)."
   :commands ledger-mode
   :init
   (progn
+    (setq
+     ledger-file (user-docs-directory "ledger.dat"))
+
+    (when (featurep 'ido)
+      (setq ledger-post-use-ido t))
+
     (defun my-ledger-start-entry (&optional arg)
       (interactive "p")
-      (find-file-other-window "~/Documents/Accounts/ledger.dat")
+      (find-file-other-window ledger-file)
       (goto-char (point-max))
       (skip-syntax-backward " ")
       (if (looking-at "\n\n")
@@ -2320,8 +2644,13 @@ FORM => (eval FORM)."
 
 (use-package lisp-mode
   ;; :load-path "site-lisp/slime/contrib/"
+  :bind (("M-." . find-function)
+	 ("C-m" . newline-and-indent))
   :init
   (progn
+    (add-hook 'emacs-lisp-mode-hook #'(lambda ()
+					(ignore-errors
+					  (diminish 'auto-fill-function))))
     (defface esk-paren-face
       '((((class color) (background dark))
          (:foreground "grey50"))
@@ -2581,6 +2910,11 @@ FORM => (eval FORM)."
 
   :config
   (progn
+    (setq magit-process-popup-time 15)
+
+    (when (featurep 'ido)
+      (setq magit-completing-read-function 'magit-ido-completing-read))
+
     (setenv "GIT_PAGER" "")
 
     (add-hook 'magit-log-edit-mode-hook
@@ -2593,7 +2927,8 @@ FORM => (eval FORM)."
 
     (defun start-git-monitor ()
       (interactive)
-      (start-process "git-monitor" (current-buffer) "~/bin/git-monitor"))
+      (start-process "git-monitor" (current-buffer)
+                     (executable-find "git-monitor")))
 
     ;;(add-hook 'magit-status-mode-hook 'start-git-monitor)
     ))
@@ -2698,12 +3033,27 @@ FORM => (eval FORM)."
           end tell" account account start (if cleared "true" "false")
             end end  duration commodity))))))
 
+;;;_ , midnight
+(use-package midnight
+  :config
+  (setq
+   clean-buffer-list-kill-never-regexps
+   '("^ \\*Minibuf-.*\\*$" "^\\*Summary" "^\\*Article" "^#")
+   clean-buffer-list-kill-never-buffer-names
+   '("*scratch*" "*Messages*" "*server*" "*Group*"
+     "*Org Agenda*" "todo.txt" "&bitlbee")
+   clean-buffer-list-kill-regexps '(".*")))
+
 ;;;_ , mudel
 
 (use-package mudel
   :commands mudel
   :bind ("C-c M" . mud)
   :init
+  (setq
+   mudel-mode-hook '(mudel-add-scroll-to-bottom)
+   mudel-output-filter-functions '(ansi-color-process-output))
+
   (defun mud ()
     (interactive)
     (mudel "4dimensions" "4dimensions.org" 6000)))
@@ -2739,6 +3089,10 @@ FORM => (eval FORM)."
 
   :config
   (progn
+    (setq
+     multi-term-program (executable-find "screen")
+     multi-term-program-switches "-DR"
+     multi-term-scroll-show-maximum-output t)
     (if t
         (defalias 'my-term-send-raw-at-prompt 'term-send-raw)
       (defun my-term-send-raw-at-prompt ()
@@ -2800,6 +3154,10 @@ FORM => (eval FORM)."
   (defalias 'xml-mode 'nxml-mode)
   :config
   (progn
+    (setq
+     nxml-sexp-element-flag t
+     nxml-slash-auto-complete-flag t)
+
     (defun my-nxml-mode-hook ()
       (bind-key "<return>" 'newline-and-indent nxml-mode-map))
 
@@ -2812,6 +3170,12 @@ FORM => (eval FORM)."
                              "-xml" "-i" "-wrap" "0" "-omit" "-q")))
 
     (bind-key "C-H" 'tidy-xml-buffer nxml-mode-map)))
+
+;;;_ , offlineimap
+
+(use-package offlineimap
+  :config
+  (setq offlineimap-command "offlineimap -u machineui"))
 
 ;;;_ , org-mode
 
@@ -2839,7 +3203,10 @@ FORM => (eval FORM)."
 
 (use-package pabbrev
   :commands pabbrev-mode
-  :diminish pabbrev-mode)
+  :diminish pabbrev-mode
+  :config
+  (setq
+   (setq pabbrev-idle-timer-verbose nil)))
 
 ;;;_ , paredit
 
@@ -2885,7 +3252,17 @@ FORM => (eval FORM)."
 
   (use-package paren
     :init
-    (show-paren-mode 1)))
+    (progn
+      (setq parens-require-spaces t
+            show-paren-mode t)
+      (show-paren-mode 1))))
+
+;;;_ , pcomplete
+
+(use-package pcomplete
+  :config
+  (setq
+   pcomplete-compare-entries-function 'file-newer-than-file-p))
 
 ;;;_ , per-window-point
 
@@ -2900,6 +3277,10 @@ FORM => (eval FORM)."
 ;;;_ , persistent-scratch
 
 (use-package persistent-scratch
+  :config
+   (setq
+    persistent-scratch-file-name (user-cache-directory "persistent-scratch"))
+
   :if (and window-system (not running-alternate-emacs)
            (not noninteractive)))
 
@@ -2913,7 +3294,9 @@ FORM => (eval FORM)."
 
 (use-package pp-c-l
   :init
-  (hook-into-modes 'pretty-control-l-mode '(prog-mode-hook)))
+  (progn
+    (setq pp^L-^L-string "                                                                              ")
+    (hook-into-modes 'pretty-control-l-mode '(prog-mode-hook))))
 
 ;;;_ , proofgeneral
 
@@ -2921,8 +3304,13 @@ FORM => (eval FORM)."
   :load-path "site-lisp/proofgeneral/generic/"
   :config
   (progn
+    (setq
+     proof-electric-terminator-enable t
+     proof-splash-enable nil
+     proof-three-window-enable nil)
     (eval-after-load "coq"
       '(progn
+         (setq coq-unicode-tokens-enable t)
          (add-hook 'coq-mode-hook
                    (lambda ()
                      (yas/minor-mode 1)
@@ -3006,6 +3394,11 @@ FORM => (eval FORM)."
   :if (not noninteractive)
   :init
   (progn
+    (setq
+     recentf-auto-cleanup 'never
+     recentf-exclude '("~\\'" "\\`out\\'" "\\.log\\'" "^/[^/]*:" "\\.el\\.gz\\'")
+     recentf-max-saved-items 2000
+     recentf-save-file (user-cache-directory "recentf"))
     (recentf-mode 1)
 
     (defun recentf-add-dired-directory ()
@@ -3074,10 +3467,16 @@ FORM => (eval FORM)."
 ;;;_ , sage-mode
 
 (use-package sage
-  :load-path "/Applications/Misc/sage/data/emacs/"
+  :if (executable-find "sage")
   :init
   (progn
-    (setq sage-command "/Applications/Misc/sage/sage")
+    (setq sage-command (executable-find "sage")
+          sage-view-anti-aliasing-level 4
+          sage-view-margin '(20 . 20)
+          sage-view-scale 2.0)
+
+    (add-to-list 'load-path
+                 (expand-file-name "data/emacs" (file-name-directory sage-command)))
 
     ;; If you want sage-view to typeset all your output and have plot()
     ;; commands inline, uncomment the following line and configure sage-view:
@@ -3110,6 +3509,16 @@ FORM => (eval FORM)."
   :load-path "site-lisp/session/lisp/"
   :init
   (progn
+    (setq session-save-file (user-cache-directory "session")
+          session-globals-exclude '(load-history flyspell-auto-correct-ring)
+          session-globals-include '((kill-ring 10 nil)
+                                    (session-file-alist 200 t)
+                                    (file-name-history 200 nil)
+                                    search-ring
+                                    regexp-search-ring)
+          session-initialize '(session places keys)
+          session-registers '(t (0 . 127)))
+
     (session-initialize)
 
     (defun remove-session-use-package-from-settings ()
@@ -3218,7 +3627,9 @@ FORM => (eval FORM)."
     (eval-when-compile
       (defvar slime-repl-mode-map))
 
-
+    (setq slime-repl-history-file (user-cache-directory "slime-history.eld")
+          slime-kill-without-query-p t
+          slime-startup-animation nil)
 
     (setq slime-net-coding-system 'utf-8-unix)
 
@@ -3318,6 +3729,20 @@ FORM => (eval FORM)."
     (require 'sunrise-x-tree)
     (require 'sunrise-x-tabs)
 
+    (setq
+     sr-attributes-display-mask '(nil nil t nil nil nil)
+     sr-autoload-extensions nil
+     sr-kill-unused-buffers nil
+     sr-listing-switches "--time-style=locale --group-directories-first -alDhgG"
+     sr-loop-use-popups nil
+     sr-popviewer-style 'single-frame
+     sr-show-file-attributes nil
+     sr-show-hidden-files t
+     sr-use-commander-keys nil
+     sr-windows-default-ratio 80)
+
+    (add-to-list 'session-globals-include 'sr-history-registry t)
+
     (bind-key "/" 'sr-sticky-isearch-forward sr-mode-map)
     (bind-key "<backspace>" 'sr-scroll-quick-view-down sr-mode-map)
     (bind-key "C-x t" 'sr-toggle-truncate-lines sr-mode-map)
@@ -3377,6 +3802,38 @@ FORM => (eval FORM)."
   This mode is used for editing .td files in the LLVM/Clang source code."
   :mode ("\\.td\\'" . tablegen-mode))
 
+;;;_ , term
+
+(use-package term
+  :init
+  (progn
+    (bind-key "C-c C-c" 'term-interrupt-subjob		  term-mode-map)
+    (bind-key "C-b"	'my-term-send-raw-at-prompt	  term-mode-map)
+    (bind-key "C-f"	'my-term-send-raw-at-prompt	  term-mode-map)
+    (bind-key "C-a"	'my-term-send-raw-at-prompt	  term-mode-map)
+    (bind-key "C-e"	'my-term-send-raw-at-prompt	  term-mode-map)
+    (bind-key "C-p"	'previous-line			  term-mode-map)
+    (bind-key "C-n"	'next-line			  term-mode-map)
+    (bind-key "C-s"	'isearch-forward		  term-mode-map)
+    (bind-key "C-r"	'isearch-backward		  term-mode-map)
+    (bind-key "C-m"	'term-send-raw			  term-mode-map)
+    (bind-key "M-f"	'term-send-forward-word		  term-mode-map)
+    (bind-key "M-b"	'term-send-backward-word	  term-mode-map)
+    (bind-key "M->"	'my-term-end-of-buffer		  term-mode-map)
+    (bind-key "M-o"	'term-send-backspace		  term-mode-map)
+    (bind-key "M-p"	'term-send-up			  term-mode-map)
+    (bind-key "M-n"	'term-send-down			  term-mode-map)
+    (bind-key "M-d"	'term-send-forward-kill-word	  term-mode-map)
+    (bind-key "M-DEL"	'term-send-backward-kill-word	  term-mode-map)
+    (bind-key "M-r"	'term-send-reverse-search-history term-mode-map)
+    (bind-key "M-,"	'term-send-input		  term-mode-map)
+    (bind-key "M-."     'comint-dynamic-complete	  term-mode-map)
+    (bind-key "C-y"	'term-paste			  term-mode-map))
+  :config
+  (setq
+   term-buffer-maximum-size 0
+   term-scroll-show-maximum-output t))
+
 ;;;_ , texinfo
 
 (use-package texinfo
@@ -3411,6 +3868,49 @@ FORM => (eval FORM)."
                 (nth 1 entry)
               5)))))))
 
+;;;_ , tls
+
+(use-package tls
+  :config
+  (setq tls-program
+	'("gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt -p %p %h")))
+
+;;;_ , tramp
+
+(use-package tramp
+  :config
+  (setq
+   tramp-persistency-file-name (user-cache-directory "tramp")
+   tramp-auto-save-directory (user-cache-directory "tramp-backups" t)
+   tramp-default-method-alist
+   '(("\\`\\(127\\.0\\.0\\.1\\|::1\\|localhost6?\\)\\'" "\\`root\\'" "sudo"))))
+
+;;;_ , uniquify
+
+(use-package uniquify
+  :config
+  (setq
+   uniquify-buffer-name-style 'post-forward-angle-brackets))
+
+;;;_ , url
+
+(use-package url
+  :config
+  (setq
+   url-cache-directory (user-cache-directory "url")
+   url-configuration-directory (user-cache-directory "url")))
+
+;;;_ , vc-hooks
+
+(use-package vc-hooks
+  :config
+  (setq
+   vc-command-messages t
+   vc-follow-symlinks t
+   vc-git-diff-switches '("-w" "-U3")
+   vc-handled-backends '(GIT SVN CVS Bzr Hg)
+   vc-make-backup-files t))
+
 ;;;_ , vkill
 
 (use-package vkill
@@ -3436,14 +3936,15 @@ FORM => (eval FORM)."
          ("C-. A-u" . w3m-browse-chrome-url-new-session))
   :init
   (progn
-    (setq w3m-command "/usr/local/bin/w3m")
+    (setq w3m-command (executable-find "w3m"))
 
     (setq w3m-coding-system 'utf-8
           w3m-file-coding-system 'utf-8
           w3m-file-name-coding-system 'utf-8
           w3m-input-coding-system 'utf-8
           w3m-output-coding-system 'utf-8
-          w3m-terminal-coding-system 'utf-8)
+          w3m-terminal-coding-system 'utf-8
+          w3m-fill-column 80)
 
     (add-hook 'w3m-mode-hook 'w3m-link-numbering-mode)
 
@@ -3550,6 +4051,13 @@ FORM => (eval FORM)."
 (use-package wcount-mode
   :commands wcount)
 
+;;;_ , wdired
+
+(use-package wdired
+  :config
+  (setq
+   wdired-use-dired-vertical-movement 'sometimes))
+
 ;;;_ , whitespace
 
 (use-package whitespace
@@ -3610,6 +4118,13 @@ FORM => (eval FORM)."
 
   :config
   (progn
+    (setq
+     whitespace-auto-cleanup t
+     whitespace-line-column 80
+     whitespace-rescan-timer-time nil
+     whitespace-silent t
+     whitespace-style '(face trailing lines space-before-tab empty))
+
     (remove-hook 'find-file-hooks 'whitespace-buffer)
     (remove-hook 'kill-buffer-hook 'whitespace-buffer)))
 
@@ -3622,8 +4137,16 @@ FORM => (eval FORM)."
   (progn
     (winner-mode 1)
 
-    (bind-key "M-N" 'winner-redo)
-    (bind-key "M-P" 'winner-undo)))
+    (bind-key "M-N"     'winner-redo)
+    (bind-key "M-P"     'winner-undo)
+    (bind-key "C-'"     'winner-undo-redo)
+    (bind-key "C-c C-;" 'winner-undo-redo))
+
+  :config
+  (defun winner-undo-redo (&optional arg)
+    (interactive "P")
+    (if arg (winner-redo)
+      (winner-undo))))
 
 ;;;_ , workgroups
 
@@ -3634,12 +4157,19 @@ FORM => (eval FORM)."
   (progn
     (workgroups-mode 1)
 
-    (let ((workgroups-file (expand-file-name "workgroups" user-data-directory)))
+    (let ((workgroups-file (user-cache-directory "workgroups")))
       (if (file-readable-p workgroups-file)
           (wg-load workgroups-file)))
 
     (bind-key "C-\\" 'wg-switch-to-previous-workgroup wg-map)
-    (bind-key "\\" 'toggle-input-method wg-map)))
+    (bind-key "\\" 'toggle-input-method wg-map))
+  :config
+  (setq
+   wg-mode-line-on nil
+   wg-morph-on nil
+   wg-prefix-key ""
+   wg-query-for-save-on-emacs-exit nil
+   wg-query-for-save-on-workgroups-mode-exit nil))
 
 ;;;_ , wrap-region
 
@@ -3697,14 +4227,20 @@ FORM => (eval FORM)."
   :mode ("/\\.emacs\\.d/snippets/" . snippet-mode)
   :init
   (hook-into-modes #'(lambda () (yas/minor-mode 1))
-                   '(prog-mode-hook
-                     org-mode-hook
-                     ruby-mode-hook
-                     message-mode-hook
-                     gud-mode-hook
-                     erc-mode-hook))
+		   '(prog-mode-hook
+		     org-mode-hook
+		     ruby-mode-hook
+		     message-mode-hook
+		     gud-mode-hook
+		     erc-mode-hook))
   :config
   (progn
+    (add-to-list 'yas/snippet-dirs (expand-file-name "snippets" user-emacs-directory))
+    (add-to-list 'yas/snippet-dirs (user-prefs-directory "snippets"))
+
+    (setq
+     yas/triggers-in-field t
+     yas/wrap-around-region t)
     (yas/initialize)
     (yas/load-directory (expand-file-name "snippets/" user-emacs-directory))
 
@@ -3740,7 +4276,11 @@ FORM => (eval FORM)."
 (use-package yaoddmuse
   :bind (("C-c w f" . yaoddmuse-browse-page-default)
          ("C-c w e" . yaoddmuse-edit-default)
-         ("C-c w p" . yaoddmuse-post-library-default)))
+         ("C-c w p" . yaoddmuse-post-library-default))
+  :init
+  (setq
+   yaoddmuse-browse-function 'w3m-browse-url
+   yaoddmuse-directory (user-prefs-directory "yaoddmuse")))
 
 ;;;_ , zencoding-mode
 
@@ -3761,6 +4301,12 @@ FORM => (eval FORM)."
 
 ;;;_. Post initialization
 
+;; NOTE: add other items to load-path ABOVE this line
+;; The user-prefs-directory should be added as the FIRST item in
+;; load-path so that the user's own customizations will override
+;; everything else!
+(add-to-list 'load-path user-prefs-directory nil)
+
 (when window-system
   (let ((elapsed (float-time (time-subtract (current-time)
                                             emacs-start-time))))
@@ -3773,6 +4319,13 @@ FORM => (eval FORM)."
                  (message "Loading %s...done (%.3fs) [after-init]"
                           ,load-file-name elapsed)))
             t))
+
+;; NOTE: The add-hook below *MUST* be the last line in this file!
+;; This ensures that user's custom-file is loaded last to override all
+;; other customizations. The custom-file-load function should be added
+;; as the FIRST item in after-init-hook so that other hook functions
+;; (e.g. desktop.el) will run with the proper customizations loaded!
+(add-hook 'after-init-hook 'custom-file-load nil)
 
 ;; Local Variables:
 ;;   mode: emacs-lisp

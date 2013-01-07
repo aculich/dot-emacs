@@ -561,6 +561,9 @@ buffer with the list of URLs found with the `gnus-button-url-regexp'."
     (define-key gnus-article-mode-map [(control ?c) (control ?o)]
       'gnus-article-browse-urls)))
 
+(setq display-time-use-mail-icon t)
+(setq display-time-mail-function (quote (lambda nil (file-exists-p "/tmp/unread"))))
+
 (provide 'dot-gnus)
 
 ;; Local Variables:
