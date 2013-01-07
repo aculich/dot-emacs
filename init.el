@@ -4061,6 +4061,7 @@ FORM => (eval FORM)."
 ;;;_ , whitespace
 
 (use-package whitespace
+  :disabled t
   :diminish (global-whitespace-mode
              whitespace-mode
              whitespace-newline-mode)
