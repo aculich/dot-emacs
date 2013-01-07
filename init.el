@@ -3885,6 +3885,13 @@ FORM => (eval FORM)."
    tramp-default-method-alist
    '(("\\`\\(127\\.0\\.0\\.1\\|::1\\|localhost6?\\)\\'" "\\`root\\'" "sudo"))))
 
+;;;_ , uniquify
+
+(use-package uniquify
+  :config
+  (setq
+   uniquify-buffer-name-style 'post-forward-angle-brackets))
+
 ;;;_ , url
 
 (use-package url
