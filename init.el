@@ -3627,7 +3627,9 @@ FORM => (eval FORM)."
     (eval-when-compile
       (defvar slime-repl-mode-map))
 
-    (setq slime-repl-history-file (user-cache-directory "slime-history.eld"))
+    (setq slime-repl-history-file (user-cache-directory "slime-history.eld")
+          slime-kill-without-query-p t
+          slime-startup-animation nil)
 
     (setq slime-net-coding-system 'utf-8-unix)
 
