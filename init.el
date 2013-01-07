@@ -1433,6 +1433,20 @@ If MKDIR is non-nil then create NAME as a directory." `,sym)))
 
 (use-package bbdb-com
   :commands bbdb-create
+  :config
+  (setq
+   bbdb-default-country ""
+   bbdb-file (user-docs-directory "bbdb")
+   bbdb-message-caching-enabled nil
+   bbdb-no-duplicates t
+   bbdb-offer-save (quote savenoprompt)
+   bbdb-silent-running t
+   bbdb-use-pop-up nil
+   bbdb/mail-auto-create-p nil
+   bbdb-vcard-import-translation-table '(("CELL\\|CAR" . "Mobile")
+                                         ("WORK" . "Work")
+                                         ("HOME" . "Home")
+                                         ("^$" . "Work")))
   :bind ("M-B" . bbdb))
 
 ;;;_ , bm
