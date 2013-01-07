@@ -4157,12 +4157,19 @@ FORM => (eval FORM)."
   (progn
     (workgroups-mode 1)
 
-    (let ((workgroups-file (expand-file-name "workgroups" user-data-directory)))
+    (let ((workgroups-file (user-cache-directory "workgroups")))
       (if (file-readable-p workgroups-file)
           (wg-load workgroups-file)))
 
     (bind-key "C-\\" 'wg-switch-to-previous-workgroup wg-map)
-    (bind-key "\\" 'toggle-input-method wg-map)))
+    (bind-key "\\" 'toggle-input-method wg-map))
+  :config
+  (setq
+   wg-mode-line-on nil
+   wg-morph-on nil
+   wg-prefix-key ""
+   wg-query-for-save-on-emacs-exit nil
+   wg-query-for-save-on-workgroups-mode-exit nil))
 
 ;;;_ , wrap-region
 
