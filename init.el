@@ -1274,6 +1274,7 @@ If MKDIR is non-nil then create NAME as a directory." `,sym)))
   :diminish auto-complete-mode
   :init
   (progn
+    (setq global-auto-complete-mode t)
     (use-package pos-tip)
     (ac-config-default))
 
