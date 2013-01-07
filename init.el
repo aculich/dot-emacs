@@ -3203,7 +3203,10 @@ FORM => (eval FORM)."
 
 (use-package pabbrev
   :commands pabbrev-mode
-  :diminish pabbrev-mode)
+  :diminish pabbrev-mode
+  :config
+  (setq
+   (setq pabbrev-idle-timer-verbose nil)))
 
 ;;;_ , paredit
 
