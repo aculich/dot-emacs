@@ -2394,6 +2394,17 @@ FORM => (eval FORM)."
                                   ("Emacs"   (or (name . "^\\*scratch\\*$")
                                                  (name . "^\\*Messages\\*$")))))))
 
+;;;_ , icicle
+
+(use-package icicle
+  :config
+  (setq
+   icicle-Completions-text-scale-decrease 0
+   icicle-apropos-cycle-next-keys '([next] [(control 110)])
+   icicle-apropos-cycle-previous-keys '([prior] [(control 112)])
+   icicle-incremental-completion nil
+   icicle-max-candidates 100))
+
 ;;;_ , ido
 
 (use-package ido
