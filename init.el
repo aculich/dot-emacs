@@ -1662,6 +1662,18 @@ iflipb-next-buffer or iflipb-previous-buffer this round."
   :defer t
   :config
   (progn
+    (setq
+     dired-async-use-native-commands t
+     dired-clean-up-buffers-too nil
+     dired-dwim-target t
+     dired-listing-switches "-lah"
+     dired-no-confirm '(byte-compile chgrp chmod chown copy hardlink symlink touch)
+     dired-omit-files "^\\.?#\\|^\\.\\(DS_Store\\|localized\\|AppleDouble\\)$\\|^\\.\\.$"
+     dired-omit-mode nil
+     dired-recursive-copies 'always
+     dired-recursive-deletes 'always
+     diredful-init-file (user-prefs-directory "diredful-conf.el"))
+
     (defun dired-package-initialize ()
       (unless (featurep 'runner)
         (use-package dired-x)
