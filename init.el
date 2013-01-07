@@ -3395,6 +3395,9 @@ FORM => (eval FORM)."
   :init
   (progn
     (setq
+     recentf-auto-cleanup 'never
+     recentf-exclude '("~\\'" "\\`out\\'" "\\.log\\'" "^/[^/]*:" "\\.el\\.gz\\'")
+     recentf-max-saved-items 2000
      recentf-save-file (user-cache-directory "recentf"))
     (recentf-mode 1)
 
