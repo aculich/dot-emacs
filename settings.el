@@ -38,8 +38,6 @@
  '(default-input-method "latin-1-prefix")
  '(delete-by-moving-to-trash t)
  '(delete-old-versions (quote none))
- '(display-time-mail-function (quote (lambda nil (file-exists-p "/tmp/unread"))))
- '(display-time-use-mail-icon t)
  '(doc-view-resolution 300)
  '(emms-player-mplayer-parameters (quote ("-slave" "-quiet" "-really-quiet" "-volume" "15")))
  '(emms-source-file-default-directory "/Volumes/Data/Music/iTunes/iTunes Media/")
