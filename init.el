@@ -2124,6 +2124,12 @@ FORM => (eval FORM)."
    tags-apropos-verbose t
    tags-case-fold-search nil))
 
+;;;_ , eudc
+
+(use-package eudc
+  :config
+  (setq eudc-inline-expansion-format '("%s <%s>" name email)))
+
 ;;;_ , eval-expr
 
 (use-package eval-expr
