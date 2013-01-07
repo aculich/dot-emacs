@@ -4051,6 +4051,13 @@ FORM => (eval FORM)."
 (use-package wcount-mode
   :commands wcount)
 
+;;;_ , wdired
+
+(use-package wdired
+  :config
+  (setq
+   wdired-use-dired-vertical-movement 'sometimes))
+
 ;;;_ , whitespace
 
 (use-package whitespace
