@@ -3252,7 +3252,10 @@ FORM => (eval FORM)."
 
   (use-package paren
     :init
-    (show-paren-mode 1)))
+    (progn
+      (setq parens-require-spaces t
+            show-paren-mode t)
+      (show-paren-mode 1))))
 
 ;;;_ , per-window-point
 
