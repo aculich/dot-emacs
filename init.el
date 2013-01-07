@@ -2353,7 +2353,42 @@ FORM => (eval FORM)."
 ;;;_ , ibuffer
 
 (use-package ibuffer
-  :bind ("C-x C-b" . ibuffer))
+  :bind ("C-x C-b" . ibuffer)
+  :config
+  (setq
+   ibuffer-default-display-maybe-show-predicates t
+   ibuffer-expert t
+   ibuffer-maybe-show-regexps nil
+   ibuffer-show-empty-filter-groups nil
+   ibuffer-shrink-to-minimum-size t
+   ibuffer-use-other-window t
+   ibuffer-formats '((mark modified read-only " " (name 16 -1) " "
+                           (size 6 -1 :right) " " (mode 16 16) " "
+                           filename)
+                     (mark " " (name 16 -1) " " filename))
+   ibuffer-saved-filter-groups '(("default" ("Commands"
+                                             (or (mode . shell-mode)
+                                                 (mode . eshell-mode)
+                                                 (mode . term-mode)
+                                                 (mode . compilation-mode)))
+                                  ("Helm"        (mode . helm-mode))
+                                  ("Magit"   (or (mode . magit-status-mode)
+                                                 (mode . magit-log-mode)))
+                                  ("C++"     (or (mode . c-mode)
+                                                 (mode . c++-mode)))
+                                  ("Lisp"        (mode . emacs-lisp-mode))
+                                  ("Dired"       (mode . dired-mode))
+                                  ("Gnus"    (or (mode . message-mode)
+                                                 (mode . mail-mode)
+                                                 (mode . gnus-group-mode)
+                                                 (mode . gnus-summary-mode)
+                                                 (mode . gnus-article-mode)
+                                                 (name . "^\\.newsrc-dribble")))
+                                  ("Org"     (or (name . "^\\*Calendar\\*$")
+                                                 (name . "^diary$")
+                                                 (mode . org-mode)))
+                                  ("Emacs"   (or (name . "^\\*scratch\\*$")
+                                                 (name . "^\\*Messages\\*$")))))))
 
 ;;;_ , ido
 
