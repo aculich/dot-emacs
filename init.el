@@ -462,7 +462,6 @@ If MKDIR is non-nil then create NAME as a directory." `,sym)))
 (bind-key "C-c e l" 'find-library)
 (bind-key "C-c e r" 'eval-region)
 (bind-key "C-c e s" 'scratch)
-(bind-key "C-c e v" 'edit-variable)
 
 (defun find-which (name)
   (interactive "sCommand name: ")
@@ -1847,6 +1846,11 @@ The output appears in the buffer `*Async Shell Command*'."
      ediff-split-window-function 'split-window-horizontally
      ediff-window-setup-function 'ediff-setup-windows-plain)
     (use-package ediff-keep)))
+
+;;;_ , edit-var
+
+(use-package edit-var
+  :bind ("C-c e v" . edit-variable))
 
 ;;;_ , edit-server
 
