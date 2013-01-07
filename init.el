@@ -2172,6 +2172,10 @@ FORM => (eval FORM)."
   :bind (("C-c i b" . flyspell-buffer)
          ("C-c i f" . flyspell-mode))
   :config
+  (setq
+   flyspell-abbrev-p nil
+   flyspell-incorrect-hook '(flyspell-maybe-correct-transposition)
+   flyspell-use-meta-tab nil)
   (define-key flyspell-mode-map [(control ?.)] nil))
 
 ;;;_ , fold-dwim
