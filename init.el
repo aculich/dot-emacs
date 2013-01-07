@@ -2910,6 +2910,11 @@ FORM => (eval FORM)."
 
   :config
   (progn
+    (setq magit-process-popup-time 15)
+
+    (when (featurep 'ido)
+      (setq magit-completing-read-function 'magit-ido-completing-read))
+
     (setenv "GIT_PAGER" "")
 
     (add-hook 'magit-log-edit-mode-hook
