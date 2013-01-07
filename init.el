@@ -2360,7 +2360,7 @@ FORM => (eval FORM)."
 ;;;_ , ibuffer
 
 (use-package ibuffer
-  :bind ("C-x C-b" . ibuffer)
+  :bind ("C-x b" . ibuffer)
   :config
   (setq
    ibuffer-default-display-maybe-show-predicates t
