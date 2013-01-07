@@ -2579,9 +2579,15 @@ FORM => (eval FORM)."
   :commands ledger-mode
   :init
   (progn
+    (setq
+     ledger-file (user-docs-directory "ledger.dat"))
+
+    (when (featurep 'ido)
+      (setq ledger-post-use-ido t))
+
     (defun my-ledger-start-entry (&optional arg)
       (interactive "p")
-      (find-file-other-window "~/Documents/Accounts/ledger.dat")
+      (find-file-other-window ledger-file)
       (goto-char (point-max))
       (skip-syntax-backward " ")
       (if (looking-at "\n\n")
