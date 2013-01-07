@@ -1651,6 +1651,8 @@ iflipb-next-buffer or iflipb-previous-buffer this round."
 
 (use-package diff-mode
   :commands diff-mode
+  :init
+  (setq diff-mode-hook '(diff-delete-empty-files diff-make-unified smerge-mode))
   :config
   (use-package diff-mode-))
 
