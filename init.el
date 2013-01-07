@@ -2336,6 +2336,20 @@ FORM => (eval FORM)."
   :config
   (use-package hl-line+))
 
+;;;_ , hpaste
+
+(use-package hpaste
+  :defer t
+  :config
+  (use-package erc)
+  (setq
+   hpaste-announce 'always
+   hpaste-blank-title nil
+   hpaste-channel "#haskell"
+   hpaste-default-lang "haskell"
+   hpaste-default-nick (erc-compute-nick)
+   hpaste-lang 'always))
+
 ;;;_ , ibuffer
 
 (use-package ibuffer
