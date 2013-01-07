@@ -2418,6 +2418,23 @@ FORM => (eval FORM)."
 
   :config
   (progn
+    (setq
+     read-buffer-function 'ido-read-buffer
+     ido-auto-merge-work-directories-length 0
+     ido-cannot-complete-command 'ido-exit-minibuffer
+     ido-enable-flex-matching t
+     ido-enable-last-directory-history nil
+     ido-enable-tramp-completion nil
+     ido-enter-matching-directory 'first
+     ido-ubiquitous-mode t
+     ido-use-virtual-buffers t
+     ido-save-directory-list-file (user-cache-directory "ido.last")
+     ido-decorations '("{" "}" "," ",..." "[" "]" " [No match]" " [Matched]"
+                       " [Not readable]" " [Too big]" " [Confirm]")
+     ido-ignore-files '("\\`CVS/" "\\`#" "\\`.#" "\\`\\.\\./" "\\`\\./"
+                        "\\`\\.DS_Store" "\\`\\.localized" "\\.sparsebundle/"
+                        "\\.dmg\\'"))
+
     (use-package ido-hacks
       :init
       (ido-hacks-mode 1))
