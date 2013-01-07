@@ -3257,6 +3257,13 @@ FORM => (eval FORM)."
             show-paren-mode t)
       (show-paren-mode 1))))
 
+;;;_ , pcomplete
+
+(use-package pcomplete
+  :config
+  (setq
+   pcomplete-compare-entries-function 'file-newer-than-file-p))
+
 ;;;_ , per-window-point
 
 (use-package per-window-point
