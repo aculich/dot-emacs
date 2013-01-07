@@ -3802,6 +3802,38 @@ FORM => (eval FORM)."
   This mode is used for editing .td files in the LLVM/Clang source code."
   :mode ("\\.td\\'" . tablegen-mode))
 
+;;;_ , term
+
+(use-package term
+  :init
+  (progn
+    (bind-key "C-c C-c" 'term-interrupt-subjob		  term-mode-map)
+    (bind-key "C-b"	'my-term-send-raw-at-prompt	  term-mode-map)
+    (bind-key "C-f"	'my-term-send-raw-at-prompt	  term-mode-map)
+    (bind-key "C-a"	'my-term-send-raw-at-prompt	  term-mode-map)
+    (bind-key "C-e"	'my-term-send-raw-at-prompt	  term-mode-map)
+    (bind-key "C-p"	'previous-line			  term-mode-map)
+    (bind-key "C-n"	'next-line			  term-mode-map)
+    (bind-key "C-s"	'isearch-forward		  term-mode-map)
+    (bind-key "C-r"	'isearch-backward		  term-mode-map)
+    (bind-key "C-m"	'term-send-raw			  term-mode-map)
+    (bind-key "M-f"	'term-send-forward-word		  term-mode-map)
+    (bind-key "M-b"	'term-send-backward-word	  term-mode-map)
+    (bind-key "M->"	'my-term-end-of-buffer		  term-mode-map)
+    (bind-key "M-o"	'term-send-backspace		  term-mode-map)
+    (bind-key "M-p"	'term-send-up			  term-mode-map)
+    (bind-key "M-n"	'term-send-down			  term-mode-map)
+    (bind-key "M-d"	'term-send-forward-kill-word	  term-mode-map)
+    (bind-key "M-DEL"	'term-send-backward-kill-word	  term-mode-map)
+    (bind-key "M-r"	'term-send-reverse-search-history term-mode-map)
+    (bind-key "M-,"	'term-send-input		  term-mode-map)
+    (bind-key "M-."     'comint-dynamic-complete	  term-mode-map)
+    (bind-key "C-y"	'term-paste			  term-mode-map))
+  :config
+  (setq
+   term-buffer-maximum-size 0
+   term-scroll-show-maximum-output t))
+
 ;;;_ , texinfo
 
 (use-package texinfo
