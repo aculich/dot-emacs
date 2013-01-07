@@ -1316,13 +1316,14 @@ If MKDIR is non-nil then create NAME as a directory." `,sym)))
   :defer t
   :init
   (progn
-    (setq backup-directory-alist
-          (list (cons ".*" (user-cache-directory "backups" t))))
-    (autoload 'backup-each-save "backup-each-save")
-    (add-hook 'after-save-hook 'backup-each-save)
-
     (defun my-make-backup-file-name (file)
       (make-backup-file-name-1 (file-truename file)))
+
+    (setq backup-directory-alist
+          (list (cons ".*" (user-cache-directory "backups" t)))
+          make-backup-file-name-function 'my-make-backup-file-name)
+    (autoload 'backup-each-save "backup-each-save")
+    (add-hook 'after-save-hook 'backup-each-save)
 
     (defun show-backups ()
       (interactive)
