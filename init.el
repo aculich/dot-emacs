@@ -4137,8 +4137,16 @@ FORM => (eval FORM)."
   (progn
     (winner-mode 1)
 
-    (bind-key "M-N" 'winner-redo)
-    (bind-key "M-P" 'winner-undo)))
+    (bind-key "M-N"     'winner-redo)
+    (bind-key "M-P"     'winner-undo)
+    (bind-key "C-'"     'winner-undo-redo)
+    (bind-key "C-c C-;" 'winner-undo-redo))
+
+  :config
+  (defun winner-undo-redo (&optional arg)
+    (interactive "P")
+    (if arg (winner-redo)
+      (winner-undo))))
 
 ;;;_ , workgroups
 
