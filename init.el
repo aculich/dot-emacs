@@ -47,7 +47,8 @@ If MKDIR is non-nil then create NAME as a directory." `,sym)))
                    path)
                ,sym)))))
 
-(load (expand-file-name "load-path" (file-name-directory load-file-name)))
+(when load-file-name
+ (load (expand-file-name "load-path" (file-name-directory load-file-name))))
 
 (require 'use-package)
 (eval-when-compile
