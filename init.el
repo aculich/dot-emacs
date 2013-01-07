@@ -1837,7 +1837,16 @@ The output appears in the buffer `*Async Shell Command*'."
          ("C-. = l" . ediff-regions-linewise)
          ("C-. = w" . ediff-regions-wordwise))
   :config
-  (use-package ediff-keep))
+  (progn
+    (setq
+     ediff-combination-pattern (quote ("<<<<<<< A: HEAD" A "||||||| Ancestor" Ancestor "=======" B ">>>>>>> B: Incoming"))
+     ediff-diff-options "-w"
+     ediff-highlight-all-diffs nil
+     ediff-merge-split-window-function 'split-window-vertically
+     ediff-show-clashes-only t
+     ediff-split-window-function 'split-window-horizontally
+     ediff-window-setup-function 'ediff-setup-windows-plain)
+    (use-package ediff-keep)))
 
 ;;;_ , edit-server
 
