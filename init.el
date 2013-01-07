@@ -3154,6 +3154,10 @@ FORM => (eval FORM)."
   (defalias 'xml-mode 'nxml-mode)
   :config
   (progn
+    (setq
+     nxml-sexp-element-flag t
+     nxml-slash-auto-complete-flag t)
+
     (defun my-nxml-mode-hook ()
       (bind-key "<return>" 'newline-and-indent nxml-mode-map))
 
