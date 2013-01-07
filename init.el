@@ -3868,6 +3868,13 @@ FORM => (eval FORM)."
                 (nth 1 entry)
               5)))))))
 
+;;;_ , tls
+
+(use-package tls
+  :config
+  (setq tls-program
+	'("gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt -p %p %h")))
+
 ;;;_ , tramp
 
 (use-package tramp
