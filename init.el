@@ -4118,6 +4118,13 @@ FORM => (eval FORM)."
 
   :config
   (progn
+    (setq
+     whitespace-auto-cleanup t
+     whitespace-line-column 80
+     whitespace-rescan-timer-time nil
+     whitespace-silent t
+     whitespace-style '(face trailing lines space-before-tab empty))
+
     (remove-hook 'find-file-hooks 'whitespace-buffer)
     (remove-hook 'kill-buffer-hook 'whitespace-buffer)))
 
