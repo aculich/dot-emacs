@@ -1638,6 +1638,15 @@ iflipb-next-buffer or iflipb-previous-buffer this round."
 (use-package dedicated
   :bind ("C-. d" . dedicated-mode))
 
+;;;_ , deft
+(use-package deft
+  :init
+  (setq deft-directory (user-docs-directory "deft" t))
+  :config
+  (setq
+   deft-auto-save-interval 0.0
+   deft-text-mode 'org-mode))
+
 ;;;_ , diff-mode
 
 (use-package diff-mode
