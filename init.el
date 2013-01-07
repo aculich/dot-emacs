@@ -3304,8 +3304,13 @@ FORM => (eval FORM)."
   :load-path "site-lisp/proofgeneral/generic/"
   :config
   (progn
+    (setq
+     proof-electric-terminator-enable t
+     proof-splash-enable nil
+     proof-three-window-enable nil)
     (eval-after-load "coq"
       '(progn
+         (setq coq-unicode-tokens-enable t)
          (add-hook 'coq-mode-hook
                    (lambda ()
                      (yas/minor-mode 1)
