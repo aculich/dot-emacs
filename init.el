@@ -2116,6 +2116,14 @@ FORM => (eval FORM)."
   :load-path "site-lisp/ess/lisp/"
   :commands R)
 
+;;;_ , etags
+
+(use-package etags
+  :config
+  (setq
+   tags-apropos-verbose t
+   tags-case-fold-search nil))
+
 ;;;_ , eval-expr
 
 (use-package eval-expr
