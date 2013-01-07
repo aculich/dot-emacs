@@ -4227,14 +4227,20 @@ FORM => (eval FORM)."
   :mode ("/\\.emacs\\.d/snippets/" . snippet-mode)
   :init
   (hook-into-modes #'(lambda () (yas/minor-mode 1))
-                   '(prog-mode-hook
-                     org-mode-hook
-                     ruby-mode-hook
-                     message-mode-hook
-                     gud-mode-hook
-                     erc-mode-hook))
+		   '(prog-mode-hook
+		     org-mode-hook
+		     ruby-mode-hook
+		     message-mode-hook
+		     gud-mode-hook
+		     erc-mode-hook))
   :config
   (progn
+    (add-to-list 'yas/snippet-dirs (expand-file-name "snippets" user-emacs-directory))
+    (add-to-list 'yas/snippet-dirs (user-prefs-directory "snippets"))
+
+    (setq
+     yas/triggers-in-field t
+     yas/wrap-around-region t)
     (yas/initialize)
     (yas/load-directory (expand-file-name "snippets/" user-emacs-directory))
 
