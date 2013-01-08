@@ -361,6 +361,7 @@ If MKDIR is non-nil then create NAME as a directory." `,sym)))
       (insert line-text))))
 
 (bind-key "C-x C-d" 'duplicate-line)
+(bind-key "C-A-y"   'duplicate-line)
 (bind-key "C-x C-e" 'pp-eval-last-sexp)
 (bind-key "C-x C-n" 'next-line)
 
