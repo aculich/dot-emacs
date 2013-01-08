@@ -3196,7 +3196,8 @@ FORM => (eval FORM)."
     (unless running-alternate-emacs
       (run-with-idle-timer 300 t 'jump-to-org-agenda))
 
-    (if (string-match "\\.elc\\'" load-file-name)
+    (if (and load-file-name
+             (string-match "\\.elc\\'" load-file-name))
         (add-hook 'after-init-hook
                   #'(lambda ()
                       (org-agenda-list)
