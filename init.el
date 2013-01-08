@@ -4132,6 +4132,33 @@ FORM => (eval FORM)."
     (remove-hook 'find-file-hooks 'whitespace-buffer)
     (remove-hook 'kill-buffer-hook 'whitespace-buffer)))
 
+;;;_ , window-utils
+
+(use-package window-utils
+  :bind (("C-S-<iso-lefttab>" . other-window-previous)
+         ("C-S-<tab>"         . other-window-previous)
+         ("C-<tab>"           . other-window-next)
+         ("C-x o"             . other-window-next)
+         ("C-x C-o"           . other-window-next)
+
+         ("C-^"               . enlarge-window)
+         ("C-x C--"           . split-window-vertically)
+         ("C-x C-\\"          . split-window-horizontally)
+         ("C-x C-l"           . balance-windows)
+         ("C-{"               . shrink-window-horizontally)
+         ("C-}"               . enlarge-window-horizontally)
+
+         ("C-A-0"             . delete-window-or-frame)
+         ("C-A-1"             . delete-other-windows)
+         ("C-A-2"             . split-window-vertically)
+         ("C-A-3"             . split-window-horizontally)
+         ("C-A-4"             . dired-jump)
+         ("C-A-5"             . delete-window-make-new-frame)
+         ("C-A-9"             . kill-buffer-and-window)
+         ("C-x 9"             . kill-buffer-and-window)
+         ("C-A--"             . bury-buffer)
+         ("C-x C-9"           . kill-buffer-and-window)))
+
 ;;;_ , winner
 
 (use-package winner
