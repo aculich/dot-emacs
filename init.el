@@ -343,6 +343,14 @@ If MKDIR is non-nil then create NAME as a directory." `,sym)))
 (bind-key "C-x F" 'set-fill-column)
 (bind-key "C-x t" 'toggle-truncate-lines)
 
+(defun toggle-transparency ()
+  (interactive)
+  (if (/= (cadr (frame-parameter nil 'alpha)) 100)
+      (set-frame-parameter nil 'alpha '(100 100))
+    (set-frame-parameter nil 'alpha '(85 50))))
+
+(bind-key "C-x T" 'toggle-transparency)
+
 ;;;_  . C-x C-?
 
 (defun duplicate-line ()
@@ -851,13 +859,6 @@ If MKDIR is non-nil then create NAME as a directory." `,sym)))
       (indent-according-to-mode)
       (forward-line))
 
-    (defun my-c-save-buffer ()
-      (interactive)
-      (if (buffer-modified-p)
-          (call-interactively 'save-buffer))
-      (if flymake-mode
-          (flymake-start-syntax-check)))
-
     (defun my-c-mode-common-hook ()
       (abbrev-mode 1)
       (gtags-mode 1)
@@ -1259,6 +1260,16 @@ If MKDIR is non-nil then create NAME as a directory." `,sym)))
       :config
       (progn
         (use-package preview)
+        (use-package ac-math)
+
+        (defun ac-latex-mode-setup ()
+          (nconc ac-sources
+                 '(ac-source-math-unicode ac-source-math-latex
+                                          ac-source-latex-commands)))
+
+        (add-to-list 'ac-modes 'latex-mode)
+        (add-hook 'latex-mode-hook 'ac-latex-mode-setup)
+
         (info-lookup-add-help :mode 'latex-mode
                               :regexp ".*"
                               :parse-rule "\\\\?[a-zA-Z]+\\|\\\\[^a-zA-Z]"
@@ -1663,6 +1674,22 @@ iflipb-next-buffer or iflipb-previous-buffer this round."
 
 (use-package dired
   :defer t
+  :init
+  (progn
+    (defvar mark-files-cache (make-hash-table :test #'equal))
+
+    (defun mark-similar-versions (name)
+      (let ((pat name))
+        (if (string-match "^\\(.+?\\)-[0-9._-]+$" pat)
+            (setq pat (match-string 1 pat)))
+        (or (gethash pat mark-files-cache)
+            (ignore (puthash pat t mark-files-cache)))))
+
+    (defun dired-mark-similar-version ()
+      (interactive)
+      (setq mark-files-cache (make-hash-table :test #'equal))
+      (dired-mark-sexp '(mark-similar-versions name))))
+
   :config
   (progn
     (setq
@@ -1934,7 +1961,14 @@ The output appears in the buffer `*Async Shell Command*'."
             erc-fill-column 88
             erc-insert-timestamp-function 'erc-insert-timestamp-left)
 
-      (set-input-method "Agda"))
+      (set-input-method "Agda")
+
+      (defun reset-erc-track-mode ()
+        (interactive)
+        (setq erc-modified-channels-alist nil)
+        (erc-modified-channels-update))
+
+      (bind-key "C-c r" 'reset-erc-track-mode))
 
     (add-hook 'erc-mode-hook 'setup-irc-environment)
 
@@ -2061,7 +2095,51 @@ FORM => (eval FORM)."
 
     (defun erc-cmd-DEOPME ()
       "Deop myself from current channel."
-      (erc-cmd-DEOP (format "%s" (erc-current-nick))))))
+      (erc-cmd-DEOP (format "%s" (erc-current-nick))))
+
+    (defun erc-cmd-UNTRACK (&optional target)
+      "Add TARGET to the list of target to be tracked."
+      (if target
+          (erc-with-server-buffer
+           (let ((untracked
+                  (car (erc-member-ignore-case target erc-track-exclude))))
+             (if untracked
+                 (erc-display-line
+                  (erc-make-notice
+                   (format "%s is not currently tracked!" target))
+                  'active)
+               (add-to-list 'erc-track-exclude target)
+               (erc-display-line
+                (erc-make-notice (format "Now not tracking %s" target))
+                'active))))
+
+        (if (null erc-track-exclude)
+            (erc-display-line
+             (erc-make-notice "Untracked targets list is empty") 'active)
+
+          (erc-display-line (erc-make-notice "Untracked targets list:") 'active)
+          (mapc #'(lambda (item)
+                    (erc-display-line (erc-make-notice item) 'active))
+                (erc-with-server-buffer erc-track-exclude))))
+      t)
+
+
+    (defun erc-cmd-TRACK (target)
+      "Remove TARGET of the list of targets which they should not be tracked.
+   If no TARGET argument is specified, list contents of `erc-track-exclude'."
+      (when target
+        (erc-with-server-buffer
+         (let ((tracked
+                (not (car (erc-member-ignore-case target erc-track-exclude)))))
+           (if tracked
+               (erc-display-line
+                (erc-make-notice (format "%s is currently tracked!" target))
+                'active)
+             (setq erc-track-exclude (remove target erc-track-exclude))
+             (erc-display-line
+              (erc-make-notice (format "Now tracking %s" target))
+              'active)))))
+      t)))
 
 ;;;_ , eshell
 
@@ -2163,6 +2241,152 @@ FORM => (eval FORM)."
                      "/usr/share/doc/RFC/links/")
                    (user-cache-directory "RFC" t))))
 
+;;;_ , flycheck
+
+(use-package flycheck
+  :load-path ("site-lisp/flycheck/deps/dash.el"
+              "site-lisp/flycheck/deps/s.el")
+  :init
+  (progn
+    (flycheck-declare-checker haskell-ghc
+      "Haskell checker using ghc"
+      :command '("ghc" "-fno-code" "-v0" source-inplace)
+      :error-patterns
+      `((,(concat "^\\(?1:.*?\\):\\(?2:[0-9]+\\):\\(?3:[0-9]+\\):[ \t\n\r]*"
+                  "\\(?5:Warning: \\)?"
+                  "\\(?4:\\(.\\|[ \t\n\r]\\)+?\\)\\(^\n\\|\\'\\)")
+         (if (let ((out (match-string 5 output)))
+               (and out (string= out "Warning: ")))
+             'warning
+           'error)))
+      :modes 'haskell-mode)
+
+    (push 'haskell-ghc flycheck-checkers)
+
+    (flycheck-declare-checker haskell-hdevtools
+      "Haskell checker using hdevtools"
+      :command '("hdevtools" "check" source-inplace)
+      :error-patterns
+      `((,(concat "^\\(?1:.*?\\):\\(?2:[0-9]+\\):\\(?3:[0-9]+\\):[ \t\n\r]*"
+                  "\\(?5:Warning: \\)?"
+                  "\\(?4:\\(.\\|[ \t\n\r]\\)+?\\)\\(^\n\\|\\'\\)")
+         (if (let ((out (match-string 5 output)))
+               (and out (string= out "Warning: ")))
+             'warning
+           'error)))
+      :modes 'haskell-mode)
+
+    (push 'haskell-hdevtools flycheck-checkers)
+
+    (flycheck-declare-checker haskell-hlint
+      "Haskell checker using hlint"
+      :command '("hlint" source-inplace)
+      :error-patterns
+      `((,(concat "^\\(?1:.*?\\):\\(?2:[0-9]+\\):\\(?3:[0-9]+\\): Error: "
+                  "\\(?4:\\(.\\|[ \t\n\r]\\)+?\\)\\(^\n\\|\\'\\)")
+         error)
+        (,(concat "^\\(?1:.*?\\):\\(?2:[0-9]+\\):\\(?3:[0-9]+\\): Warning: "
+                  "\\(?4:\\(.\\|[ \t\n\r]\\)+?\\)\\(^\n\\|\\'\\)")
+         warning))
+      :modes 'haskell-mode)
+
+    ;;(push 'haskell-hlint flycheck-checkers)
+
+    (flycheck-declare-checker bash
+      "Bash checker"
+      :command '("bash" "--norc" "--noprofile" "-n" source)
+      :error-patterns
+      '(("^\\(?1:.*\\): line \\(?2:[0-9]+\\): \\(?4:.*\\)$" error))
+      :modes 'sh-mode
+      :predicate '(eq sh-shell 'bash))
+
+    (push 'bash flycheck-checkers)
+
+    (flycheck-declare-checker xmllint
+      "xmllint checker"
+      :command '("xmllint" "--noout" "--postvalid" source)
+      :error-patterns
+      '(("^\\(?1:.*\\):\\(?2:[0-9]+\\): parser error : \\(?4:.*\\)$" error))
+      :modes 'nxml-mode)
+
+    (push 'xmllint flycheck-checkers)
+
+    (flycheck-declare-checker jslint
+      "jslint checker"
+      :command '("jsl" "-process" source)
+      :error-patterns
+      '(("^\\(?1:.*\\)(\\(?2:[0-9]+\\)): error: \\(?4:.*\\)$" error)
+        ("^\\(?1:.*\\)(\\(?2:[0-9]+\\)): \\(\\(lint \\)?warning\\): \\(?4:.*\\)$"
+         warning))
+      :modes 'js2-mode)
+
+    (push 'jslint flycheck-checkers)
+
+    (flycheck-declare-checker clang++-ledger
+      "Clang++ checker for Ledger"
+      :command
+      '("clang++" "-Wall" "-fsyntax-only"
+        "-I/Users/johnw/Products/ledger/debug" "-I../lib"
+        "-I../lib/utfcpp/source"
+        "-I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7"
+        "-include" "system.hh" "-c" source-inplace)
+      :error-patterns
+      '(("^\\(?1:.*\\):\\(?2:[0-9]+\\):\\(?3:[0-9]+\\): warning:\\s-*\\(?4:.*\\)"
+         warning)
+        ("^\\(?1:.*\\):\\(?2:[0-9]+\\):\\(?3:[0-9]+\\): error:\\s-*\\(?4:.*\\)"
+         error))
+      :modes 'c++-mode
+      :predicate '(string-match "/ledger/" (buffer-file-name)))
+
+    (push 'clang++-ledger flycheck-checkers)
+
+    (defun my-flycheck-show-error-in-window ()
+      (interactive)
+      (flycheck-cancel-error-display-timer)
+      (when flycheck-mode
+        (let ((buf (get-buffer-create "*Flycheck Info*"))
+              (message (car (flycheck-overlay-messages-at (point)))))
+          (with-current-buffer buf
+            (delete-region (point-min) (point-max))
+            (insert message))
+          (display-buffer buf)
+          (fit-window-to-buffer (get-buffer-window buf)))))
+
+    (defun flycheck-show-error-at-point ()
+      "Show the first error message at point in minibuffer."
+      (interactive)
+      (flycheck-cancel-error-display-timer)
+      (when flycheck-mode
+        (if (flycheck-may-show-message)
+            (let* ((buf (get-buffer-create "*Flycheck Info*"))
+                   (wind (get-buffer-window buf))
+                   (message (car (flycheck-overlay-messages-at (point)))))
+              (if message
+                  (if (> (length (split-string message "\n")) 8)
+                      (my-flycheck-show-error-in-window)
+                    (if wind (delete-window wind))
+                    (message "%s" message))
+                (message nil)))
+          ;; Try again if the minibuffer is busy at the moment
+          (flycheck-show-error-at-point-soon))))
+
+    (defun my-flycheck-mode-hook ()
+      (bind-key "M-?" 'my-flycheck-show-error-in-window flycheck-mode-map)
+      (bind-key "M-p" 'previous-error flycheck-mode-map)
+      (bind-key "M-n" 'next-error flycheck-mode-map))
+
+    (add-hook 'flycheck-mode-hook 'my-flycheck-mode-hook)
+
+    (add-hook 'prog-mode-hook 'flycheck-mode)
+    (add-hook 'nxml-mode-hook 'flycheck-mode)
+    (add-hook 'js2-mode-hook 'flycheck-mode)
+    (add-hook 'haskell-mode-hook 'flycheck-mode))
+
+  :config
+  (progn
+    (defalias 'flycheck-show-error-at-point-soon 'flycheck-show-error-at-point)
+    (defalias 's-collapse-whitespace 'identity)))
+
 ;;;_ , flyspell
 
 (use-package ispell
@@ -2231,9 +2455,11 @@ FORM => (eval FORM)."
     (use-package grep-ed)
 
     (grep-apply-setting 'grep-command "egrep -nH -e ")
-    (grep-apply-setting
-     'grep-find-command
-     '("find . -type f -print0 | xargs -P4 -0 egrep -nH -e " . 52))))
+    (if nil
+        (grep-apply-setting 'grep-find-command '("gf -e " . 7))
+      (grep-apply-setting
+       'grep-find-command
+       '("find . -type f -print0 | xargs -P4 -0 egrep -nH -e " . 52)))))
 
 ;;;_ , gtags
 
@@ -2672,7 +2898,7 @@ FORM => (eval FORM)."
                     (compose-region (match-beginning 1)
                                     (match-end 1) ?λ))))
                ("(\\|)" . 'esk-paren-face)
-               ("(\\(ert-deftest\\)\\>[ 	'(]*\\(setf[ 	]+\\sw+\\|\\sw+\\)?"
+               ("(\\(ert-deftest\\)\\>[         '(]*\\(setf[    ]+\\sw+\\|\\sw+\\)?"
                 (1 font-lock-keyword-face)
                 (2 font-lock-function-name-face
                  nil t)))))
@@ -2920,6 +3146,8 @@ FORM => (eval FORM)."
       (setq magit-completing-read-function 'magit-ido-completing-read))
 
     (setenv "GIT_PAGER" "")
+
+    (unbind-key "M-s" magit-mode-map)
 
     (add-hook 'magit-log-edit-mode-hook
               #'(lambda ()
@@ -3322,13 +3550,11 @@ FORM => (eval FORM)."
                      (whitespace-mode 1)
                      (unicode-tokens-use-shortcuts 0)))
          (bind-key "M-RET" 'proof-goto-point coq-mode-map)
-         (bind-key "<tab>" 'yas/expand-from-trigger-key coq-mode-map)))
-
-    (defadvice proof-electric-terminator
-      (around insert-newline-after-terminator activate)
-      (save-excursion
-        ad-do-it)
-      (forward-char))))
+         (bind-key "<tab>" 'yas/expand-from-trigger-key coq-mode-map)
+         (bind-key "C-c C-p" (lambda ()
+                               (interactive)
+                               (proof-layout-windows)
+                               (proof-prf)) coq-mode-map)))))
 
 ;;;_ , ps-print
 
@@ -3490,9 +3716,10 @@ FORM => (eval FORM)."
     (add-hook 'sage-startup-after-prompt-hook 'sage-view)
     ;; You can use commands like
     ;; (add-hook 'sage-startup-after-prompt-hook 'sage-view-disable-inline-output)
-    (add-hook 'sage-startup-after-prompt-hook 'sage-view-disable-inline-plots)
+    (add-hook 'sage-startup-after-prompt-hook 'sage-view-disable-inline-plots t)
     ;; to enable some combination of features
-    ))
+
+    (bind-key "C-c Z" 'sage)))
 
 ;;;_ , selectkey
 

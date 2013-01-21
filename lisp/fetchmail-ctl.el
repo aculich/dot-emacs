@@ -44,16 +44,17 @@
                (throw 'proc-running proc)
              (throw 'proc-running nil)))))))
 
-(defun start-fetchmail (&optional name &rest extra-args)
+(defun start-fetchmail (&optional name once &rest extra-args)
   (interactive)
   (let ((procname (or name "*fetchmail*")))
     (unless (process-running-p procname)
       (message "Starting Fetchmail...")
-      (let ((buf (get-buffer-create procname)))
+      (let ((buf (get-buffer-create procname))
+            (args (copy-list extra-args)))
+        (unless once (nconc args '("-d" "900")))
         (setq fetchmail-process
               (apply #'start-process procname buf
-                     "/usr/local/bin/fetchmail" "-n" "-d" "900" "-N"
-                     extra-args)))
+                     "/usr/local/bin/fetchmail" "-n" "-N" args)))
       (message "Starting Fetchmail...done"))))
 
 (defun safely-kill-process (name &optional signal verb)
@@ -73,14 +74,15 @@
   (interactive)
   (safely-kill-process "*fetchmail*")
   (safely-kill-process "*fetchmail-lists*")
-  (safely-kill-process "*fetchmail-spam*")
+  ;; (safely-kill-process "*fetchmail-spam*")
   (safely-kill-process "*fetchnews*"))
 
 (defun kick-fetchmail ()
   (interactive)
   (safely-kill-process "*fetchmail*" 'SIGUSR1 "Kicking")
   (safely-kill-process "*fetchmail-lists*" 'SIGUSR1 "Kicking")
-  (safely-kill-process "*fetchmail-spam*" 'SIGUSR1 "Kicking"))
+  ;; (safely-kill-process "*fetchmail-spam*" 'SIGUSR1 "Kicking")
+  )
 
 (defun get-buffer-or-call-func (name func)
   (let ((buf (get-buffer name)))
@@ -91,6 +93,14 @@
               (funcall func)))
           (get-buffer name)))))
 
+(defun get-buffer-and-call-func (name func)
+  (let ((buf (get-buffer name)))
+    (if (and buf
+             (or (not (get-buffer-process buf))
+                 (not (eq 'run (process-status (get-buffer-process buf))))))
+        (kill-buffer buf))
+    (get-buffer-or-call-func name func)))
+
 (defun switch-to-fetchmail ()
   (interactive)
   (let ((fetchmail-buf
@@ -98,7 +108,7 @@
           "*fetchmail*"
           (function
            (lambda ()
-             (start-fetchmail "*fetchmail*" "--idle")))))
+             (start-fetchmail "*fetchmail*" nil "--idle")))))
         (fetchmail-lists-buf
          (get-buffer-or-call-func
           "*fetchmail-lists*"
@@ -106,7 +116,7 @@
            (lambda ()
              (let ((process-environment (copy-alist process-environment)))
                (setenv "FETCHMAILHOME" (expand-file-name "~/Messages/Newsdir"))
-               (start-fetchmail "*fetchmail-lists*"
+               (start-fetchmail "*fetchmail-lists*" nil
                                 "-f" (expand-file-name
                                       "~/Messages/fetchmailrc.lists")))))))
         (fetchmail-spam-buf
@@ -116,7 +126,7 @@
            (lambda ()
              (let ((process-environment (copy-alist process-environment)))
                (setenv "FETCHMAILHOME" (expand-file-name "~/Messages/Maildir"))
-               (start-fetchmail "*fetchmail-spam*"
+               (start-fetchmail "*fetchmail-spam*" t
                                 "-f" (expand-file-name
                                       "~/Messages/fetchmailrc.spam")))))))
         (fetchnews-buf
@@ -128,7 +138,7 @@
                             (get-buffer-create "*fetchnews*")
                             (executable-find "fetchnews")
                             "-F" (expand-file-name "~/Messages/leafnode/config")
-                            "-vvv" "-n")))))
+                            "-vvv")))))
         (cur-buf (current-buffer)))
     (delete-other-windows)
     (flet ((switch-in-other-buffer
